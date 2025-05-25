@@ -1,0 +1,33 @@
+[
+
+{ track: 1, name: "La 100 y vos", file: "https://musicsrc.cvattv.com.ar/L100" },
+{ track: 2, name: "Radio Disney", file: "https://musicsrc.cvattv.com.ar/RDIS" },
+{ track: 3, name: "Blue FM", file: "https://playerservices.streamtheworld.com/api/livestream-redirect/BLUE_FM_100_7AAC.aac" },
+{ track: 4, name: "Aspen FM", file: "https://mdstrm.com/audio/60a2745ff943100826374a70/icecast.audio" },
+{ track: 5, name: "Vorterix", file: "http://online.radiozero.fm:8000/;"},
+{ track: 5, name: "Urbana Play", file: "https://vmf.edge-apps.net/playlist/urbana.m3u8/play.m3u8"},
+{ track: 5, name: "FM Vale 97.5", file: "http://vale.stweb.tv:1935/vale/live/playlist.m3u8 " },
+{ track: 3, name: "Mega 98.3", file: "https://mega.stweb.tv/mega983/live/playlist.m3u8"},
+{ track: 1, name: "POP 101.5", file: "https://sa.mp3.icecast.magma.edge-access.net/sc_rad38" },
+{ track: 7, name: "Rock & Pop", file: "https://musicsrc.cvattv.com.ar/RandP" },
+{ track: 9, name: "Red Boing F!88.7", file: "https://streaming.redboing.com/radio/8020/radio.mp3" },
+{ track: 10, name: "Late FM", file: "http://streaming.radiolinksmedia.com:8252/;stream " },
+{ track: 10, name: "Radio Latina", file:"https://radiolatina.live:10992/;" },
+{ track: 11, name: "FM Pasion 102.7", file: "http://streamlky.alsolnet.com:443/fmpasion" },
+{ track: 30, name: "FM Okey", file: "http://streaming.fmokey.cl:8000/FmOkAT.mp3" },
+{ track: 14, name: "Radio Folklore", file: "http://streamlky.alsolnet.com:443/radiofolclorisimohd" },
+{ track: 15, name: "Radio Mitre", file: "https://musicsrc.cvattv.com.ar/RMIT" },
+{ track: 16, name: "Radio Nacional", file: "https://musicsrc.cvattv.com.ar/RNAC" },
+{ track: 18, name: "Radio AM720 Mza", file: "http://audio.bustream.com:8062/stream" },
+{ track: 20, name: "La Red AM910", file: "https://playerservices.streamtheworld.com/api/livestream-redirect/LA_RED_AM910AAC.aac" },
+{ track: 21, name: "CNN Radio AM950", file: "http://estudio.cnnradioargentina.com.ar:8000/stream" },
+{ track: 22, name: "Monumental 1080", file: "https://musicsrc.cvattv.com.ar/RMON" },
+{ track: 22, name: "TechnoBase FM", file: "https://listener1.mp3.tb-group.fm/tb.mp3" },
+{ track: 23, name: "HouseTime FM", file: "https://listener3.mp3.tb-group.fm/ht.mp3" },
+{ track: 25, name: "Techno 24/7", file: "http://listen.diesel.fm:9001/techno" },
+{ track: 26, name: "Trance 24/7", file: "http://listen.diesel.fm:9001/trance" },
+{ track: 24, name: "FM Kiss - Esp.", file: "http://kissfm.kissfmradio.cires21.com/kissfm.mp3" },
+{ track: 29, name: "HQ Exitos 24-7", file: "http://68.195.165.35:8000/HQExitos24-2" },
+
+    
+]
