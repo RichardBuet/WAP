@@ -2,8 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Winamp Retro</title>
   <style>
     body {
@@ -12,7 +11,7 @@
       font-family: 'Tahoma', monospace;
       display: flex;
       justify-content: center;
-      padding: 30px;
+      padding: 40px;
     }
 
     .winamp {
@@ -21,16 +20,15 @@
       box-shadow: 0 0 20px #0f0;
       width: 320px;
       padding: 10px;
-      display: flex;
-      flex-direction: column;
     }
 
     .display {
       background: #000;
       color: #0f0;
       padding: 5px 10px;
-      font-size: 14px;
-      height: 25px;
+      font-size: 24px;
+      font-variant-caps: all-small-caps;
+      height: 34px;
       overflow: hidden;
       white-space: nowrap;
       margin-bottom: 10px;
@@ -60,6 +58,16 @@
       color: #000;
     }
 
+    #playlist {
+      width: 100%;
+      height: 100px;
+      background: #000;
+      color: #0f0;
+      border: 1px solid #0f0;
+      margin-bottom: 10px;
+      overflow-y: auto;
+    }
+
     #progress {
       width: 100%;
       margin-bottom: 10px;
@@ -67,95 +75,103 @@
 
     canvas {
       width: 100%;
-      height: 160px;
+      height: 80px;
       background: #000;
       border: 1px solid #0f0;
       margin-bottom: 10px;
     }
 
-    #playlist {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #0f0;
-      background: #000;
-    }
-
-    #playlist li {
-      padding: 5px 10px;
-      cursor: pointer;
-      border-bottom: 1px solid #0f0;
-    }
-
-    #playlist li:hover,
-    #playlist li.active {
-      background: #0f0;
-      color: #000;
-    }
-
     .eq-container {
-  margin-top: 10px;
-  color: #0f0;
-  font-size: 12px;
-}
-
-.eq-container label {
-  display: block;
-  margin-bottom: 4px;
-}
-
-#volume {
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.eq-sliders {
-  display: flex;
-  justify-content: space-between;
-}
-
-.eq-sliders input[type="range"] {
-  writing-mode: bt-lr; /* vertical */
-  appearance: slider-vertical;
-  width: 20px;
-  height: 100px;
-  background: #000;
-  border: 1px solid #0f0;
-}
-
-    
-    @media (max-width: 500px) {
-      body {
-        padding: 10px;
-      }
-
-      .winamp {
-        width: 100%;
-        max-width: 360px;
-      }
-
-      canvas {
-        height: 60px;
-      }
-
-      #playlist {
-        max-height: 120px;
-        font-size: 13px;
-      }
-
-      .controls button {
-        width: 36px;
-        font-size: 12px;
-      }
+      color: #0f0;
+      font-size: 12px;
+      margin-top: 10px;
     }
+
+    #volume {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .eq-sliders {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .eq-band {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 20px;
+    }
+
+    .eq-band input[type="range"] {
+      writing-mode: bt-lr;
+      appearance: slider-vertical;
+      width: 20px;
+      height: 100px;
+      background: #000;
+      border: 1px solid #0f0;
+    }
+
+    .eq-band label {
+      margin-top: 4px;
+      font-size: 10px;
+    }
+
+
+.eq-band input.low {
+  background: linear-gradient(to top, #0f0, #050);
+}
+.eq-band input.mid {
+  background: linear-gradient(to top, #ff0, #550);
+}
+.eq-band input.high {
+  background: linear-gradient(to top, #f00, #500);
+}
+
+
+input[type="range"].low::-webkit-slider-thumb {
+  background-color: #1e9c59; /* Verde para valores bajos */
+}
+input[type="range"].mid::-webkit-slider-thumb {
+  background-color: #f1c40f; /* Amarillo para valor neutro */
+}
+input[type="range"].high::-webkit-slider-thumb {
+  background-color: #e74c3c; /* Rojo para valores altos */
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.eq-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 4px;
+}
+
+.eq-band input {
+  transform: rotate(00deg);
+  width: 100px;
+}
+
+
+
+
   </style>
 </head>
 <body>
 
 <div class="winamp">
+  <div class="one">
   <div class="display" id="trackTitle">Cargando lista...</div>
+
+  <select id="playlist" size="6"></select>
 
   <div class="controls">
     <button onclick="prev()">⏮</button>
@@ -167,37 +183,105 @@
 
   <input type="range" id="progress" value="0" max="100">
   <canvas id="visualizer" width="300" height="140"></canvas>
-
-  <div class="eq-container">
-  <label>Volumen</label>
-  <input type="range" id="volume" min="0" max="1" step="0.01" value="0.8">
-  <div class="eq-sliders">
-    <!-- Se generarán 10 sliders vía JS -->
-  </div>
 </div>
+<div class="two">
+  <div class="eq-container">
+    <label>Volumen</label>
+    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.8" >
+  </div>
+
+
+    <div class="eq-sliders" id="eqSliders"></div>
   
-  <ul id="playlist"></ul>
 
   <audio id="audio" crossorigin="anonymous"></audio>
 </div>
-
-<!--script>
+</div>
+<script>
+  $(function() {
+  var rangePercent = $('[type="range"]').val();
+  $('[type="range"]').on('change input', function() {
+    rangePercent = $('[type="range"]').val();
+    $('h4').text(rangePercent);
+    $('[type="range"]').css('filter', 'hue-rotate(-' + rangePercent + 'deg)');
+  });
+});
+</script>
+<script>
   const audio = document.getElementById("audio");
   const playlist = document.getElementById("playlist");
   const title = document.getElementById("trackTitle");
   const progress = document.getElementById("progress");
+  const volumeSlider = document.getElementById("volume");
+  const eqContainer = document.getElementById("eqSliders");
 
   let trackList = [];
   let currentTrack = 0;
 
-  // Visualizer
-  const canvas = document.getElementById("visualizer");
-  const ctx = canvas.getContext("2d");
+  // Audio Context y EQ
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const gainNode = audioCtx.createGain();
   const analyser = audioCtx.createAnalyser();
   const source = audioCtx.createMediaElementSource(audio);
-  source.connect(analyser);
+
+  const eqBands = [
+    { freq: 60 }, { freq: 125 }, { freq: 250 }, { freq: 500 }, { freq: 1000 },
+    { freq: 2000 }, { freq: 4000 }, { freq: 8000 }, { freq: 12000 }, { freq: 16000 }
+  ];
+
+  const filters = eqBands.map(band => {
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "peaking";
+    filter.frequency.value = band.freq;
+    filter.Q.value = 1;
+    filter.gain.value = 0;
+    return filter;
+  });
+
+  // Encadenar filtros
+  source.connect(filters[0]);
+  for (let i = 0; i < filters.length - 1; i++) {
+    filters[i].connect(filters[i + 1]);
+  }
+  filters[filters.length - 1].connect(gainNode);
+  gainNode.connect(analyser);
   analyser.connect(audioCtx.destination);
+
+  // Crear sliders EQ
+  eqBands.forEach((band, i) => {
+    const bandDiv = document.createElement("div");
+    bandDiv.className = "eq-band";
+
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = -12;
+    slider.max = 12;
+    slider.step = 1;
+    slider.value = 0;
+    slider.addEventListener("input", () => {
+      filters[i].gain.value = parseFloat(slider.value);
+    });
+
+    const label = document.createElement("label");
+    label.textContent = band.freq >= 1000 ? (band.freq / 1000) + "k" : band.freq;
+
+    bandDiv.appendChild(slider);
+    bandDiv.appendChild(label);
+    eqContainer.appendChild(bandDiv);
+  });
+  
+
+
+
+
+  // Volumen
+  volumeSlider.addEventListener("input", () => {
+    gainNode.gain.value = parseFloat(volumeSlider.value);
+  });
+
+  // Visualizador
+  const canvas = document.getElementById("visualizer");
+  const ctx = canvas.getContext("2d");
   analyser.fftSize = 256;
   const bufferLength = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
@@ -218,20 +302,17 @@
   }
   draw();
 
-  // Cargar lista
+  // Playlist
   fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
     .then(res => res.json())
     .then(data => {
       trackList = data;
       playlist.innerHTML = '';
       data.forEach((track, index) => {
-        const li = document.createElement('li');
-        li.textContent = track.title;
-        li.addEventListener('click', () => {
-          loadTrack(index);
-          play();
-        });
-        playlist.appendChild(li);
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = track.title;
+        playlist.appendChild(option);
       });
       loadTrack(0);
     });
@@ -240,10 +321,7 @@
     currentTrack = index;
     audio.src = trackList[index].url;
     title.textContent = trackList[index].title;
-
-    const items = playlist.querySelectorAll('li');
-    items.forEach(item => item.classList.remove('active'));
-    if (items[index]) items[index].classList.add('active');
+    playlist.selectedIndex = index;
   }
 
   function play() {
@@ -272,6 +350,11 @@
     play();
   }
 
+  playlist.addEventListener('change', () => {
+    loadTrack(playlist.value);
+    play();
+  });
+
   audio.addEventListener('timeupdate', () => {
     if (audio.duration) {
       progress.value = (audio.currentTime / audio.duration) * 100;
@@ -283,423 +366,86 @@
   });
 </script>
 
+
 <script>
-  const audio = document.getElementById("audio");
-  const playlist = document.getElementById("playlist");
-  const title = document.getElementById("trackTitle");
-  const progress = document.getElementById("progress");
-  const canvas = document.getElementById("visualizer");
-  const ctx = canvas.getContext("2d");
-
-  let trackList = [];
-  let currentTrack = 0;
-  let audioInitialized = false;
-  let analyser, bufferLength, dataArray;
-
-  // Cargar lista desde GitHub
-  fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
-    .then(res => res.json())
-    .then(data => {
-      trackList = data;
-      playlist.innerHTML = '';
-      data.forEach((track, index) => {
-        const li = document.createElement('li');
-        li.textContent = track.title;
-        li.dataset.index = index;
-        li.style.cursor = "pointer";
-        li.onclick = () => {
-          loadTrack(index);
-          play();
-        };
-        playlist.appendChild(li);
-      });
-      loadTrack(0);
+  document.querySelectorAll('.eq-slider').forEach(slider => {
+    slider.addEventListener('input', function () {
+      const val = parseFloat(this.value);
+      const hue = (val + 12) * 15; // mapea -12 a 12 → 0 a 360 grados
+      this.style.filter = `hue-rotate(${hue}deg)`;
     });
-
-  function updatePlaylistHighlight() {
-    [...playlist.children].forEach((li, i) => {
-      li.style.backgroundColor = i == currentTrack ? "#0f0" : "transparent";
-      li.style.color = i == currentTrack ? "#000" : "#0f0";
-    });
-  }
-
-  function loadTrack(index) {
-    currentTrack = index;
-    audio.src = trackList[index].url;
-    title.textContent = trackList[index].title;
-    updatePlaylistHighlight();
-  }
-
-  function initAudioContext() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaElementSource(audio);
-    analyser = audioCtx.createAnalyser();
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
-    analyser.fftSize = 256;
-    bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    draw();
-  }
-
-  function draw() {
-    requestAnimationFrame(draw);
-    if (!analyser) return;
-    analyser.getByteFrequencyData(dataArray);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const barWidth = (canvas.width / bufferLength) * 1.5;
-    let x = 0;
-    for (let i = 0; i < bufferLength; i++) {
-      const barHeight = dataArray[i];
-      ctx.fillStyle = "#0f0";
-      ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
-      x += barWidth + 1;
-    }
-  }
-
-  function play() {
-    if (!audioInitialized) {
-      initAudioContext();
-      audioInitialized = true;
-    }
-    audio.play();
-  }
-
-  function pause() {
-    audio.pause();
-  }
-
-  function stop() {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-
-  function next() {
-    currentTrack = (currentTrack + 1) % trackList.length;
-    loadTrack(currentTrack);
-    play();
-  }
-
-  function prev() {
-    currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
-    loadTrack(currentTrack);
-    play();
-  }
-
-  audio.addEventListener('timeupdate', () => {
-    if (audio.duration) {
-      progress.value = (audio.currentTime / audio.duration) * 100;
-    }
   });
-
-  progress.addEventListener('input', () => {
-    audio.currentTime = (progress.value / 100) * audio.duration;
-  });
-</script-->
-<script>
-  const audio = document.getElementById("audio");
-  const playlist = document.getElementById("playlist");
-  const title = document.getElementById("trackTitle");
-  const progress = document.getElementById("progress");
-  const canvas = document.getElementById("visualizer");
-  
-  // MUY IMPORTANTE: Asegúrate de que el canvas tenga atributos width y height
-  // en tu HTML (ej: <canvas id="visualizer" width="600" height="200"></canvas>)
-  // o configúralos aquí ANTES de obtener el contexto:
-  // Ejemplo si no están en HTML (pero HTML es preferido para el tamaño inicial):
-  // if (!canvas.getAttribute('width')) canvas.width = 600; 
-  // if (!canvas.getAttribute('height')) canvas.height = 200;
-
-  const ctx = canvas.getContext("2d");
-//agregado
-  const volumeSlider = document.getElementById("volume");
-const eqContainer = document.querySelector(".eq-sliders");
-
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const analyser = audioCtx.createAnalyser();
-const gainNode = audioCtx.createGain();
-const source = audioCtx.createMediaElementSource(audio);
-
-const eqBands = [
-  { freq: 60 }, { freq: 125 }, { freq: 250 }, { freq: 500 }, { freq: 1000 },
-  { freq: 2000 }, { freq: 4000 }, { freq: 8000 }, { freq: 12000 }, { freq: 16000 }
-];
-
-const filters = eqBands.map(band => {
-  const filter = audioCtx.createBiquadFilter();
-  filter.type = "peaking";
-  filter.frequency.value = band.freq;
-  filter.gain.value = 0;
-  filter.Q.value = 1;
-  return filter;
-});
-
-// Conexión en cadena
-source.connect(filters[0]);
-for (let i = 0; i < filters.length - 1; i++) {
-  filters[i].connect(filters[i + 1]);
-}
-filters[filters.length - 1].connect(gainNode);
-gainNode.connect(analyser);
-analyser.connect(audioCtx.destination);
-
-// Volumen
-volumeSlider.addEventListener("input", () => {
-  gainNode.gain.value = parseFloat(volumeSlider.value);
-});
-
-// Crear sliders EQ
-eqBands.forEach((band, index) => {
-  const slider = document.createElement("input");
-  slider.type = "range";
-  slider.min = -12;
-  slider.max = 12;
-  slider.step = 1;
-  slider.value = 0;
-  slider.addEventListener("input", () => {
-    filters[index].gain.value = parseFloat(slider.value);
-  });
-  eqContainer.appendChild(slider);
-});
-
-
-
-  
-  // Para audio de diferentes dominios (si tus URLs en el JSON son externas)
-  audio.crossOrigin = "anonymous";
-
-  let trackList = [];
-  let currentTrack = 0;
-  let audioInitialized = false;
-  let audioCtx; // Hacer audioCtx accesible para reanudar si es necesario
-  let analyser, bufferLength, dataArray;
-
-  // Cargar lista desde GitHub
-  fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
-    .then(res => {
-      if (!res.ok) {
-        throw new Error(`Error HTTP! estado: ${res.status} al obtener la playlist.`);
-      }
-      return res.json();
-    })
-    .then(data => {
-      if (!data || data.length === 0) {
-        console.error("La playlist está vacía o no se cargó correctamente.");
-        title.textContent = "Error: Playlist vacía.";
-        // Considera deshabilitar controles del reproductor o mostrar un mensaje más visible.
-        return;
-      }
-      trackList = data;
-      playlist.innerHTML = ''; // Limpiar la lista antes de agregar nuevos elementos
-      data.forEach((track, index) => {
-        const li = document.createElement('li');
-        li.textContent = track.title;
-        li.dataset.index = index;
-        li.style.cursor = "pointer";
-        li.onclick = () => {
-          loadTrack(index);
-          play(); // play() ahora puede ser async
-        };
-        playlist.appendChild(li);
-      });
-      if (trackList.length > 0) {
-        loadTrack(0);
-      } else {
-        title.textContent = "Playlist cargada pero sin pistas.";
-      }
-    })
-    .catch(err => {
-      console.error("Falló al cargar la playlist:", err);
-      title.textContent = "Error cargando playlist.";
-      alert("No se pudo cargar la playlist: " + err.message);
-    });
-
-  function updatePlaylistHighlight() {
-    [...playlist.children].forEach((li, i) => {
-      li.style.backgroundColor = i == currentTrack ? "#0f0" : "transparent";
-      li.style.color = i == currentTrack ? "#000" : "#0f0";
-    });
-  }
-
-  function loadTrack(index) {
-    if (index < 0 || index >= trackList.length) {
-        console.error("Índice de pista inválido:", index);
-        return;
-    }
-    currentTrack = index;
-    audio.src = trackList[index].url;
-    title.textContent = trackList[index].title;
-    updatePlaylistHighlight();
-    // No llames a play() aquí, deja que el usuario lo haga o un control explícito.
-  }
-
-  function initAudioContext() {
-    console.log("Intentando inicializar AudioContext...");
-    try {
-      const AudioContextGlobal = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextGlobal) {
-        console.error("Web Audio API no es soportado en este navegador.");
-        alert("El visualizador de audio no es soportado en este navegador.");
-        return false; // Indicar fallo
-      }
-      audioCtx = new AudioContextGlobal(); // Asignar a la variable global
-      console.log("AudioContext creado. Estado:", audioCtx.state);
-
-      // Reanudar si está suspendido (importante para Safari)
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume().then(() => {
-          console.log("AudioContext reanudado. Nuevo estado:", audioCtx.state);
-        }).catch(err => {
-          console.error("Falló al reanudar AudioContext:", err);
-        });
-      }
-
-      const source = audioCtx.createMediaElementSource(audio);
-      analyser = audioCtx.createAnalyser();
-      
-      source.connect(analyser);
-      analyser.connect(audioCtx.destination); // Conectar el analizador al destino (salida de audio)
-      
-      analyser.fftSize = 256; // Un valor común para visualizadores
-      bufferLength = analyser.frequencyBinCount; // Será la mitad de fftSize
-      dataArray = new Uint8Array(bufferLength);
-
-      console.log("AudioContext inicializado, analizador configurado. Longitud del buffer:", bufferLength);
-      if (bufferLength === 0) {
-          console.warn("bufferLength del analizador es 0. El visualizador podría no funcionar.");
-      }
-      
-      draw(); // Iniciar el bucle de dibujo
-      return true; // Indicar éxito
-    } catch (e) {
-      console.error("Error inicializando AudioContext:", e);
-      alert("Error al configurar el visualizador de audio: " + e.message + ". Por favor, asegúrate de que tu navegador soporta Web Audio API.");
-      return false; // Indicar fallo
-    }
-  }
-
-  function draw() {
-    requestAnimationFrame(draw); // Solicitar el siguiente frame para la animación
-
-    if (!analyser || !dataArray || !ctx || !canvas) {
-      // Si algo no está listo, no dibujar.
-      // console.warn("Analizador, dataArray, ctx o canvas no están listos para dibujar.");
-      return;
-    }
-    
-    analyser.getByteFrequencyData(dataArray); // Obtener los datos de frecuencia
-    
-    ctx.fillStyle = "#000"; // Color de fondo del canvas
-    ctx.fillRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
-    
-    // Validar dimensiones antes de calcular (evita división por cero o valores extraños)
-    if (canvas.width <= 0 || canvas.height <= 0 || bufferLength <= 0) {
-      // console.warn("Dimensiones de canvas o bufferLength inválidas. Saltando dibujo.");
-      return;
-    }
-
-    const spacing = 1; // Espacio de 1px entre barras
-    // Calcula el ancho de la barra para que todas las barras + espaciado quepan en el ancho del canvas
-    let barWidth = (canvas.width - (bufferLength - 1) * spacing) / bufferLength;
-    if (barWidth < 0.1) barWidth = 0.1; // Ancho mínimo para que sea visible, permite suavizado AA
-
-    let x = 0; // Posición X inicial para la primera barra
-    for (let i = 0; i < bufferLength; i++) {
-      const barHeightValue = dataArray[i]; // Valor de 0-255
-      
-      // Escala la altura de la barra. Originalmente usabas barHeightValue / 2.
-      // Esto significa que la altura máxima dibujada sería 127.5px.
-      // Asegúrate que esto es lo que quieres en relación a canvas.height.
-      // Por ejemplo, si canvas.height = 100, una barra de 127.5 se saldría.
-      // Escalemos para que la barra máxima ocupe, por ejemplo, el 80% del alto del canvas:
-      // const scaledHeight = (barHeightValue / 255) * (canvas.height * 0.8);
-      // O mantenemos la lógica original si el canvas es suficientemente alto:
-      const actualDrawHeight = barHeightValue / 2; // Altura de la barra como en tu original
-
-      ctx.fillStyle = "#0f0"; // Color de las barras
-      // Dibuja la barra desde abajo hacia arriba
-      ctx.fillRect(x, canvas.height - actualDrawHeight, barWidth, actualDrawHeight); 
-      
-      x += barWidth + spacing; // Mover X para la siguiente barra
-    }
-  }
-
-  async function play() { // Convertida a async para manejar promesas de audio.play()
-    if (!audioInitialized) {
-      if (initAudioContext()) { // Intenta inicializar y verifica si fue exitoso
-          audioInitialized = true;
-      } else {
-          console.error("Fallo en initAudioContext. El visualizador no funcionará.");
-          // Intentar reproducir audio de todas formas si la inicialización del visualizador falla
-          try {
-            await audio.play();
-          } catch(e) {
-            console.error("Error al reproducir audio sin visualizador:", e);
-            alert("Error al reproducir audio: " + e.message);
-          }
-          return; // Salir si la inicialización falla
-      }
-    }
-
-    try {
-      // Asegurar que el AudioContext esté activo (especialmente en Safari)
-      if (audioCtx && audioCtx.state === 'suspended') {
-        await audioCtx.resume();
-        console.log("AudioContext reanudado al dar play.");
-      }
-      await audio.play(); // audio.play() devuelve una promesa
-      console.log("Reproducción de audio iniciada/reanudada.");
-    } catch (e) {
-      console.error("Error al reproducir audio:", e);
-      // Podrías mostrar un mensaje al usuario aquí si la reproducción falla por políticas del navegador.
-      // alert("No se pudo reproducir el audio. Por favor, interactúa con la página y vuelve a intentarlo. Error: " + e.message);
-    }
-  }
-
-  function pause() {
-    audio.pause();
-  }
-
-  function stop() {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-
-  function next() {
-    if (trackList.length === 0) return;
-    currentTrack = (currentTrack + 1) % trackList.length;
-    loadTrack(currentTrack);
-    play(); // play() ahora puede ser async
-  }
-
-  function prev() {
-    if (trackList.length === 0) return;
-    currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
-    loadTrack(currentTrack);
-    play(); // play() ahora puede ser async
-  }
-
-  audio.addEventListener('timeupdate', () => {
-    if (audio.duration && !isNaN(audio.duration)) { // Añadido chequeo de isNaN para duration
-      progress.value = (audio.currentTime / audio.duration) * 100;
-    } else {
-      progress.value = 0; // Resetea si la duración no es válida
-    }
-  });
-
-  progress.addEventListener('input', () => {
-    if (audio.duration && !isNaN(audio.duration)) {
-      audio.currentTime = (progress.value / 100) * audio.duration;
-    }
-  });
-
-  // Consideración final:
-  // Si la página se carga y ninguna canción se reproduce automáticamente,
-  // `initAudioContext` y `draw` solo se llaman cuando el usuario presiona play por primera vez.
-  // Esto es correcto para iOS.
 </script>
 
+<script>
+  const context = new (window.AudioContext || window.webkitAudioContext)();
+  const source = context.createMediaElementSource(document.getElementById("player"));
 
+  const equalizerContainer = document.getElementById("equalizer");
+  const filters = [];
+
+  const freqs = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+  let previousNode = source;
+
+  freqs.forEach((freq) => {
+    const filter = context.createBiquadFilter();
+    filter.type = "peaking";
+    filter.frequency.value = freq;
+    filter.Q.value = 1;
+    filter.gain.value = 0;
+
+    previousNode.connect(filter);
+    previousNode = filter;
+
+    filters.push(filter);
+
+    // Crear control visual
+    const band = document.createElement("div");
+    band.className = "eq-band";
+
+    const label = document.createElement("label");
+    label.textContent = `${freq}Hz`;
+
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = -10;
+    input.max = 10;
+    input.step = 1;
+    input.value = 0;
+
+    // Escuchar cambios en el slider
+    input.addEventListener("input", () => {
+      const val = parseFloat(input.value);
+      filter.gain.value = val;
+
+      // Eliminar clases previas
+      input.classList.remove("low", "mid", "high");
+
+      // Aplicar clase según valor
+      if (val === 0) input.classList.add("mid");
+      else if (val > 0) input.classList.add("high");
+      else input.classList.add("low");
+    });
+
+    band.appendChild(label);
+    band.appendChild(input);
+    equalizerContainer.appendChild(band);
+  });
+
+  // Conectar última banda al destino (salida)
+  previousNode.connect(context.destination);
+</script>
+
+<script>
+// VOLUMEN - BARRA
+  $(function() {
+  var rangePercent = $('[type="range"]').val();
+  $('[type="range"]').on('change input', function() {
+    rangePercent = $('[type="range"]').val();
+    $('h4').text(rangePercent);
+    $('[type="range"]').css('filter', 'hue-rotate(-' + rangePercent + 'deg)');
+  });
+});
+</script>
 </body>
 </html>
