@@ -10,7 +10,7 @@
       font-family: 'Tahoma', monospace;
       display: flex;
       justify-content: center;
-      padding: 40px;
+      padding: 30px;
     }
 
     .winamp {
@@ -19,6 +19,8 @@
       box-shadow: 0 0 20px #0f0;
       width: 320px;
       padding: 10px;
+      display: flex;
+      flex-direction: column;
     }
 
     .display {
@@ -56,14 +58,6 @@
       color: #000;
     }
 
-    #playlist {
-      width: 100%;
-      background: #000;
-      color: #0f0;
-      border: 1px solid #0f0;
-      margin-bottom: 10px;
-    }
-
     #progress {
       width: 100%;
       margin-bottom: 10px;
@@ -71,9 +65,57 @@
 
     canvas {
       width: 100%;
-      height: 80px;
+      height: 160px;
       background: #000;
       border: 1px solid #0f0;
+      margin-bottom: 10px;
+    }
+
+    #playlist {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #0f0;
+      background: #000;
+    }
+
+    #playlist li {
+      padding: 5px 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #0f0;
+    }
+
+    #playlist li:hover,
+    #playlist li.active {
+      background: #0f0;
+      color: #000;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        padding: 10px;
+      }
+
+      .winamp {
+        width: 100%;
+        max-width: 360px;
+      }
+
+      canvas {
+        height: 60px;
+      }
+
+      #playlist {
+        max-height: 120px;
+        font-size: 13px;
+      }
+
+      .controls button {
+        width: 36px;
+        font-size: 12px;
+      }
     }
   </style>
 </head>
@@ -81,8 +123,6 @@
 
 <div class="winamp">
   <div class="display" id="trackTitle">Cargando lista...</div>
-
-  <select id="playlist"></select>
 
   <div class="controls">
     <button onclick="prev()">⏮</button>
@@ -94,6 +134,8 @@
 
   <input type="range" id="progress" value="0" max="100">
   <canvas id="visualizer" width="300" height="140"></canvas>
+
+  <ul id="playlist"></ul>
 
   <audio id="audio" crossorigin="anonymous"></audio>
 </div>
@@ -135,18 +177,20 @@
   }
   draw();
 
-  // Cargar lista desde GitHub
-  //fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist.json')
+  // Cargar lista
   fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
     .then(res => res.json())
     .then(data => {
       trackList = data;
       playlist.innerHTML = '';
       data.forEach((track, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = track.title;
-        playlist.appendChild(option);
+        const li = document.createElement('li');
+        li.textContent = track.title;
+        li.addEventListener('click', () => {
+          loadTrack(index);
+          play();
+        });
+        playlist.appendChild(li);
       });
       loadTrack(0);
     });
@@ -155,7 +199,10 @@
     currentTrack = index;
     audio.src = trackList[index].url;
     title.textContent = trackList[index].title;
-    playlist.selectedIndex = index;
+
+    const items = playlist.querySelectorAll('li');
+    items.forEach(item => item.classList.remove('active'));
+    if (items[index]) items[index].classList.add('active');
   }
 
   function play() {
@@ -183,11 +230,6 @@
     loadTrack(currentTrack);
     play();
   }
-
-  playlist.addEventListener('change', () => {
-    loadTrack(playlist.value);
-    play();
-  });
 
   audio.addEventListener('timeupdate', () => {
     if (audio.duration) {
