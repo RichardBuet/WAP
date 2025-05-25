@@ -95,6 +95,37 @@
       color: #000;
     }
 
+    .eq-container {
+  margin-top: 10px;
+  color: #0f0;
+  font-size: 12px;
+}
+
+.eq-container label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+#volume {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.eq-sliders {
+  display: flex;
+  justify-content: space-between;
+}
+
+.eq-sliders input[type="range"] {
+  writing-mode: bt-lr; /* vertical */
+  appearance: slider-vertical;
+  width: 20px;
+  height: 100px;
+  background: #000;
+  border: 1px solid #0f0;
+}
+
+    
     @media (max-width: 500px) {
       body {
         padding: 10px;
@@ -137,6 +168,14 @@
   <input type="range" id="progress" value="0" max="100">
   <canvas id="visualizer" width="300" height="140"></canvas>
 
+  <div class="eq-container">
+  <label>Volumen</label>
+  <input type="range" id="volume" min="0" max="1" step="0.01" value="0.8">
+  <div class="eq-sliders">
+    <!-- Se generarán 10 sliders vía JS -->
+  </div>
+</div>
+  
   <ul id="playlist"></ul>
 
   <audio id="audio" crossorigin="anonymous"></audio>
@@ -373,7 +412,60 @@
   // if (!canvas.getAttribute('height')) canvas.height = 200;
 
   const ctx = canvas.getContext("2d");
+//agregado
+  const volumeSlider = document.getElementById("volume");
+const eqContainer = document.querySelector(".eq-sliders");
 
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const analyser = audioCtx.createAnalyser();
+const gainNode = audioCtx.createGain();
+const source = audioCtx.createMediaElementSource(audio);
+
+const eqBands = [
+  { freq: 60 }, { freq: 125 }, { freq: 250 }, { freq: 500 }, { freq: 1000 },
+  { freq: 2000 }, { freq: 4000 }, { freq: 8000 }, { freq: 12000 }, { freq: 16000 }
+];
+
+const filters = eqBands.map(band => {
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "peaking";
+  filter.frequency.value = band.freq;
+  filter.gain.value = 0;
+  filter.Q.value = 1;
+  return filter;
+});
+
+// Conexión en cadena
+source.connect(filters[0]);
+for (let i = 0; i < filters.length - 1; i++) {
+  filters[i].connect(filters[i + 1]);
+}
+filters[filters.length - 1].connect(gainNode);
+gainNode.connect(analyser);
+analyser.connect(audioCtx.destination);
+
+// Volumen
+volumeSlider.addEventListener("input", () => {
+  gainNode.gain.value = parseFloat(volumeSlider.value);
+});
+
+// Crear sliders EQ
+eqBands.forEach((band, index) => {
+  const slider = document.createElement("input");
+  slider.type = "range";
+  slider.min = -12;
+  slider.max = 12;
+  slider.step = 1;
+  slider.value = 0;
+  slider.addEventListener("input", () => {
+    filters[index].gain.value = parseFloat(slider.value);
+  });
+  eqContainer.appendChild(slider);
+});
+
+
+
+  
   // Para audio de diferentes dominios (si tus URLs en el JSON son externas)
   audio.crossOrigin = "anonymous";
 
