@@ -242,7 +242,7 @@
   progress.addEventListener('input', () => {
     audio.currentTime = (progress.value / 100) * audio.duration;
   });
-</script-->
+</script>
 
 <script>
   const audio = document.getElementById("audio");
@@ -357,6 +357,255 @@
   progress.addEventListener('input', () => {
     audio.currentTime = (progress.value / 100) * audio.duration;
   });
+</script-->
+<script>
+  const audio = document.getElementById("audio");
+  const playlist = document.getElementById("playlist");
+  const title = document.getElementById("trackTitle");
+  const progress = document.getElementById("progress");
+  const canvas = document.getElementById("visualizer");
+  
+  // MUY IMPORTANTE: Asegúrate de que el canvas tenga atributos width y height
+  // en tu HTML (ej: <canvas id="visualizer" width="600" height="200"></canvas>)
+  // o configúralos aquí ANTES de obtener el contexto:
+  // Ejemplo si no están en HTML (pero HTML es preferido para el tamaño inicial):
+  // if (!canvas.getAttribute('width')) canvas.width = 600; 
+  // if (!canvas.getAttribute('height')) canvas.height = 200;
+
+  const ctx = canvas.getContext("2d");
+
+  // Para audio de diferentes dominios (si tus URLs en el JSON son externas)
+  audio.crossOrigin = "anonymous";
+
+  let trackList = [];
+  let currentTrack = 0;
+  let audioInitialized = false;
+  let audioCtx; // Hacer audioCtx accesible para reanudar si es necesario
+  let analyser, bufferLength, dataArray;
+
+  // Cargar lista desde GitHub
+  fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`Error HTTP! estado: ${res.status} al obtener la playlist.`);
+      }
+      return res.json();
+    })
+    .then(data => {
+      if (!data || data.length === 0) {
+        console.error("La playlist está vacía o no se cargó correctamente.");
+        title.textContent = "Error: Playlist vacía.";
+        // Considera deshabilitar controles del reproductor o mostrar un mensaje más visible.
+        return;
+      }
+      trackList = data;
+      playlist.innerHTML = ''; // Limpiar la lista antes de agregar nuevos elementos
+      data.forEach((track, index) => {
+        const li = document.createElement('li');
+        li.textContent = track.title;
+        li.dataset.index = index;
+        li.style.cursor = "pointer";
+        li.onclick = () => {
+          loadTrack(index);
+          play(); // play() ahora puede ser async
+        };
+        playlist.appendChild(li);
+      });
+      if (trackList.length > 0) {
+        loadTrack(0);
+      } else {
+        title.textContent = "Playlist cargada pero sin pistas.";
+      }
+    })
+    .catch(err => {
+      console.error("Falló al cargar la playlist:", err);
+      title.textContent = "Error cargando playlist.";
+      alert("No se pudo cargar la playlist: " + err.message);
+    });
+
+  function updatePlaylistHighlight() {
+    [...playlist.children].forEach((li, i) => {
+      li.style.backgroundColor = i == currentTrack ? "#0f0" : "transparent";
+      li.style.color = i == currentTrack ? "#000" : "#0f0";
+    });
+  }
+
+  function loadTrack(index) {
+    if (index < 0 || index >= trackList.length) {
+        console.error("Índice de pista inválido:", index);
+        return;
+    }
+    currentTrack = index;
+    audio.src = trackList[index].url;
+    title.textContent = trackList[index].title;
+    updatePlaylistHighlight();
+    // No llames a play() aquí, deja que el usuario lo haga o un control explícito.
+  }
+
+  function initAudioContext() {
+    console.log("Intentando inicializar AudioContext...");
+    try {
+      const AudioContextGlobal = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextGlobal) {
+        console.error("Web Audio API no es soportado en este navegador.");
+        alert("El visualizador de audio no es soportado en este navegador.");
+        return false; // Indicar fallo
+      }
+      audioCtx = new AudioContextGlobal(); // Asignar a la variable global
+      console.log("AudioContext creado. Estado:", audioCtx.state);
+
+      // Reanudar si está suspendido (importante para Safari)
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().then(() => {
+          console.log("AudioContext reanudado. Nuevo estado:", audioCtx.state);
+        }).catch(err => {
+          console.error("Falló al reanudar AudioContext:", err);
+        });
+      }
+
+      const source = audioCtx.createMediaElementSource(audio);
+      analyser = audioCtx.createAnalyser();
+      
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination); // Conectar el analizador al destino (salida de audio)
+      
+      analyser.fftSize = 256; // Un valor común para visualizadores
+      bufferLength = analyser.frequencyBinCount; // Será la mitad de fftSize
+      dataArray = new Uint8Array(bufferLength);
+
+      console.log("AudioContext inicializado, analizador configurado. Longitud del buffer:", bufferLength);
+      if (bufferLength === 0) {
+          console.warn("bufferLength del analizador es 0. El visualizador podría no funcionar.");
+      }
+      
+      draw(); // Iniciar el bucle de dibujo
+      return true; // Indicar éxito
+    } catch (e) {
+      console.error("Error inicializando AudioContext:", e);
+      alert("Error al configurar el visualizador de audio: " + e.message + ". Por favor, asegúrate de que tu navegador soporta Web Audio API.");
+      return false; // Indicar fallo
+    }
+  }
+
+  function draw() {
+    requestAnimationFrame(draw); // Solicitar el siguiente frame para la animación
+
+    if (!analyser || !dataArray || !ctx || !canvas) {
+      // Si algo no está listo, no dibujar.
+      // console.warn("Analizador, dataArray, ctx o canvas no están listos para dibujar.");
+      return;
+    }
+    
+    analyser.getByteFrequencyData(dataArray); // Obtener los datos de frecuencia
+    
+    ctx.fillStyle = "#000"; // Color de fondo del canvas
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
+    
+    // Validar dimensiones antes de calcular (evita división por cero o valores extraños)
+    if (canvas.width <= 0 || canvas.height <= 0 || bufferLength <= 0) {
+      // console.warn("Dimensiones de canvas o bufferLength inválidas. Saltando dibujo.");
+      return;
+    }
+
+    const spacing = 1; // Espacio de 1px entre barras
+    // Calcula el ancho de la barra para que todas las barras + espaciado quepan en el ancho del canvas
+    let barWidth = (canvas.width - (bufferLength - 1) * spacing) / bufferLength;
+    if (barWidth < 0.1) barWidth = 0.1; // Ancho mínimo para que sea visible, permite suavizado AA
+
+    let x = 0; // Posición X inicial para la primera barra
+    for (let i = 0; i < bufferLength; i++) {
+      const barHeightValue = dataArray[i]; // Valor de 0-255
+      
+      // Escala la altura de la barra. Originalmente usabas barHeightValue / 2.
+      // Esto significa que la altura máxima dibujada sería 127.5px.
+      // Asegúrate que esto es lo que quieres en relación a canvas.height.
+      // Por ejemplo, si canvas.height = 100, una barra de 127.5 se saldría.
+      // Escalemos para que la barra máxima ocupe, por ejemplo, el 80% del alto del canvas:
+      // const scaledHeight = (barHeightValue / 255) * (canvas.height * 0.8);
+      // O mantenemos la lógica original si el canvas es suficientemente alto:
+      const actualDrawHeight = barHeightValue / 2; // Altura de la barra como en tu original
+
+      ctx.fillStyle = "#0f0"; // Color de las barras
+      // Dibuja la barra desde abajo hacia arriba
+      ctx.fillRect(x, canvas.height - actualDrawHeight, barWidth, actualDrawHeight); 
+      
+      x += barWidth + spacing; // Mover X para la siguiente barra
+    }
+  }
+
+  async function play() { // Convertida a async para manejar promesas de audio.play()
+    if (!audioInitialized) {
+      if (initAudioContext()) { // Intenta inicializar y verifica si fue exitoso
+          audioInitialized = true;
+      } else {
+          console.error("Fallo en initAudioContext. El visualizador no funcionará.");
+          // Intentar reproducir audio de todas formas si la inicialización del visualizador falla
+          try {
+            await audio.play();
+          } catch(e) {
+            console.error("Error al reproducir audio sin visualizador:", e);
+            alert("Error al reproducir audio: " + e.message);
+          }
+          return; // Salir si la inicialización falla
+      }
+    }
+
+    try {
+      // Asegurar que el AudioContext esté activo (especialmente en Safari)
+      if (audioCtx && audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+        console.log("AudioContext reanudado al dar play.");
+      }
+      await audio.play(); // audio.play() devuelve una promesa
+      console.log("Reproducción de audio iniciada/reanudada.");
+    } catch (e) {
+      console.error("Error al reproducir audio:", e);
+      // Podrías mostrar un mensaje al usuario aquí si la reproducción falla por políticas del navegador.
+      // alert("No se pudo reproducir el audio. Por favor, interactúa con la página y vuelve a intentarlo. Error: " + e.message);
+    }
+  }
+
+  function pause() {
+    audio.pause();
+  }
+
+  function stop() {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+
+  function next() {
+    if (trackList.length === 0) return;
+    currentTrack = (currentTrack + 1) % trackList.length;
+    loadTrack(currentTrack);
+    play(); // play() ahora puede ser async
+  }
+
+  function prev() {
+    if (trackList.length === 0) return;
+    currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
+    loadTrack(currentTrack);
+    play(); // play() ahora puede ser async
+  }
+
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration && !isNaN(audio.duration)) { // Añadido chequeo de isNaN para duration
+      progress.value = (audio.currentTime / audio.duration) * 100;
+    } else {
+      progress.value = 0; // Resetea si la duración no es válida
+    }
+  });
+
+  progress.addEventListener('input', () => {
+    if (audio.duration && !isNaN(audio.duration)) {
+      audio.currentTime = (progress.value / 100) * audio.duration;
+    }
+  });
+
+  // Consideración final:
+  // Si la página se carga y ninguna canción se reproduce automáticamente,
+  // `initAudioContext` y `draw` solo se llaman cuando el usuario presiona play por primera vez.
+  // Esto es correcto para iOS.
 </script>
 
 
