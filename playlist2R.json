@@ -1,5 +1,4 @@
 [
-
 {"title": "La 100 y vos", "url": "https://musicsrc.cvattv.com.ar/L100"},
 {"title": "Radio Disney", "url": "https://musicsrc.cvattv.com.ar/RDIS"},
 {"title": "Blue FM", "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/BLUE_FM_100_7AAC.aac"},
@@ -27,9 +26,5 @@
 {"title": "Techno 24/7", "url": "http://listen.diesel.fm:9001/techno"},
 {"title": "Trance 24/7", "url": "http://listen.diesel.fm:9001/trance"},
 {"title": "FM Kiss - Esp.", "url": "http://kissfm.kissfmradio.cires21.com/kissfm.mp3"},
-{"title": "HQ Exitos 24-7", "url": "http://68.195.165.35:8000/HQExitos24-2"},
-
-
-
-    
+{"title": "HQ Exitos 24-7", "url": "http://68.195.165.35:8000/HQExitos24-2"}
 ]
