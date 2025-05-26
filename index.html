@@ -1,13 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-<!--   <meta name="viewport" content="width=device-width, initial-scale=1">-->
-  <meta name="viewport" content="width=device-width, initial-scale=1.6, maximum-scale=1.0, user-scalable=yes" /> 
-  <title>Winamp Retro V0.3.0</title>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script> 
-<!-- <script src='https://api.html5media.info/1.1.6/html5media.min.js'></script>  -->
-
+<!--   <meta name="viewport" content="width=device-width, initial-scale=1"-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.2, maximum-scale=0.8, user-scalable=yes" />
+  <title>Winamp Retro</title>
   <style>
     body {
       background-color: #111;
@@ -62,35 +60,30 @@
       color: #000;
     }
 
-
-    #playlist {
+/*    #playlist {
       width: 100%;
-      max-height: 100px;
+      height: 100px;
       background: #000;
       color: #0f0;
       border: 1px solid #0f0;
       margin-bottom: 10px;
       overflow-y: auto;
-      list-style: none;
-      padding-left: 0;
-    }
-
-    #playlist li {
-      padding: 4px 8px;
-      cursor: pointer;
-    }
-
-    #playlist li.active {
-      background-color: #0f0;
-      color: #000;
-      font-weight: bold;
-    }
-
-
-/*    #progress {
+    }*/
+   #playlist {
+    width: 100%;
+    height: 30vh;
+    background: #000;
+    color: #0f0;
+    border: 1px solid #0f0;
+    margin-bottom: 10px;
+    overflow-y: auto;
+    display: flex;
+    align-items: start;
+  }
+    #progress {
       width: 100%;
       margin-bottom: 10px;
-    }*/
+    }
 
     canvas {
       width: 100%;
@@ -110,7 +103,6 @@
       width: 100%;
       margin-bottom: 10px;
     }
-
 
     .eq-sliders {
       display: flex;
@@ -140,46 +132,45 @@
     }
 
 
-    .eq-band input.low {
-      background: linear-gradient(to top, #0f0, #050);
-    }
-    .eq-band input.mid {
-      background: linear-gradient(to top, #ff0, #550);
-    }
-    .eq-band input.high {
-      background: linear-gradient(to top, #f00, #500);
-    }
+.eq-band input.low {
+  background: linear-gradient(to top, #0f0, #050);
+}
+.eq-band input.mid {
+  background: linear-gradient(to top, #ff0, #550);
+}
+.eq-band input.high {
+  background: linear-gradient(to top, #f00, #500);
+}
 
 
-    input[type="range"].low::-webkit-slider-thumb {
-      background-color: #1e9c59; /* Verde para valores bajos */
-    }
-    input[type="range"].mid::-webkit-slider-thumb {
-      background-color: #f1c40f; /* Amarillo para valor neutro */
-    }
-    input[type="range"].high::-webkit-slider-thumb {
-      background-color: #e74c3c; /* Rojo para valores altos */
-    }
+input[type="range"].low::-webkit-slider-thumb {
+  background-color: #1e9c59; /* Verde para valores bajos */
+}
+input[type="range"].mid::-webkit-slider-thumb {
+  background-color: #f1c40f; /* Amarillo para valor neutro */
+}
+input[type="range"].high::-webkit-slider-thumb {
+  background-color: #e74c3c; /* Rojo para valores altos */
+}
 
-    input[type="range"]::-webkit-slider-thumb {
-      border-radius: 50%;
-      width: 14px;
-      height: 14px;
-      cursor: pointer;
-    }
+input[type="range"]::-webkit-slider-thumb {
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
 
-    .eq-band {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 4px;
-      hue-rotate:0deg;
-    }
+.eq-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 4px;
+}
 
-    .eq-band input {
-      transform: rotate(00deg);
-      width: 100px;
-    }
+.eq-band input {
+  transform: rotate(00deg);
+  width: 100px;
+}
 
 
 
@@ -192,7 +183,7 @@
   <div class="one">
   <div class="display" id="trackTitle">Cargando lista...</div>
 
-    <ul id="playlist"></ul>
+  <select id="playlist" size="6"></select>
 
   <div class="controls">
     <button onclick="prev()">⏮</button>
@@ -202,13 +193,13 @@
     <button onclick="next()">⏭</button>
   </div>
 
-  <!-- <input type="range" id="progress" value="0" max="100"> eq-sliders step="0.01"-->
+  <input type="range" id="progress" value="0" max="100">
   <canvas id="visualizer" width="300" height="140"></canvas>
 </div>
 <div class="two">
   <div class="eq-container">
     <label>Volumen</label>
-    <input type="range" class="player__level" id="volume" min="0" max="1.00" step="0.01" value="0.80" >
+    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.8" >
   </div>
 
 
@@ -218,18 +209,26 @@
   <audio id="audio" crossorigin="anonymous"></audio>
 </div>
 </div>
-
+<script>
+  $(function() {
+  var rangePercent = $('[type="range"]').val();
+  $('[type="range"]').on('change input', function() {
+    rangePercent = $('[type="range"]').val();
+    $('h4').text(rangePercent);
+    $('[type="range"]').css('filter', 'hue-rotate(-' + rangePercent + 'deg)');
+  });
+});
+</script>
 <script>
   const audio = document.getElementById("audio");
   const playlist = document.getElementById("playlist");
   const title = document.getElementById("trackTitle");
-  // const progress = document.getElementById("progress");
+  const progress = document.getElementById("progress");
   const volumeSlider = document.getElementById("volume");
   const eqContainer = document.getElementById("eqSliders");
 
   let trackList = [];
   let currentTrack = 0;
-  let audioInitialized = false;
 
   // Audio Context y EQ
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -295,7 +294,6 @@
   // Visualizador
   const canvas = document.getElementById("visualizer");
   const ctx = canvas.getContext("2d");
-
   analyser.fftSize = 256;
   const bufferLength = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
@@ -315,7 +313,6 @@
     }
   }
   draw();
-  audioInitialized = true;
 
   // Playlist
   fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
@@ -324,14 +321,10 @@
       trackList = data;
       playlist.innerHTML = '';
       data.forEach((track, index) => {
-        const li = document.createElement('li');
-        li.textContent = track.title;
-        li.dataset.index = index;
-        li.addEventListener('click', () => {
-          loadTrack(index);
-          play();
-        });
-        playlist.appendChild(li);
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = track.title;
+        playlist.appendChild(option);
       });
       loadTrack(0);
     });
@@ -340,9 +333,7 @@
     currentTrack = index;
     audio.src = trackList[index].url;
     title.textContent = trackList[index].title;
-    [...playlist.children].forEach(li => li.classList.remove('active'));
-    playlist.children[index].classList.add('active');
-
+    playlist.selectedIndex = index;
   }
 
   function play() {
@@ -376,15 +367,15 @@
     play();
   });
 
-  // audio.addEventListener('timeupdate', () => {
-  //   if (audio.duration) {
-  //     progress.value = (audio.currentTime / audio.duration) * 100;
-  //   }
-  // });
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration) {
+      progress.value = (audio.currentTime / audio.duration) * 100;
+    }
+  });
 
-  // progress.addEventListener('input', () => {
-  //   audio.currentTime = (progress.value / 100) * audio.duration;
-  // });
+  progress.addEventListener('input', () => {
+    audio.currentTime = (progress.value / 100) * audio.duration;
+  });
 </script>
 
 
@@ -460,11 +451,11 @@
 <script>
 // VOLUMEN - BARRA
   $(function() {
-  var rangePercent = $('.eq-band [type="range"]').val();
-  $('.eq-band [type="range"]').on('change input', function() {
-    rangePercent = $('.eq-band [type="range"]').val();
-    $('.eq-container label noo').text(rangePercent);
-    $('.eq-band [type="range"]').css('filter', 'hue-rotate(' + (rangePercent * 11.25) + 'deg ) ');
+  var rangePercent = $('[type="range"]').val();
+  $('[type="range"]').on('change input', function() {
+    rangePercent = $('[type="range"]').val();
+    $('h4').text(rangePercent);
+    $('[type="range"]').css('filter', 'hue-rotate(-' + rangePercent + 'deg)');
   });
 });
 </script>
