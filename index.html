@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
 <!--   <meta name="viewport" content="width=device-width, initial-scale=1">-->
-  <meta name="viewport" content="width=device-width, initial-scale=1.2, maximum-scale=0.8, user-scalable=yes" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.6, maximum-scale=1.0, user-scalable=yes" /> 
   <title>Winamp Retro V0.3.0</title>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script> 
 <!-- <script src='https://api.html5media.info/1.1.6/html5media.min.js'></script>  -->
@@ -229,6 +229,7 @@
 
   let trackList = [];
   let currentTrack = 0;
+  let audioInitialized = false;
 
   // Audio Context y EQ
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -294,6 +295,7 @@
   // Visualizador
   const canvas = document.getElementById("visualizer");
   const ctx = canvas.getContext("2d");
+
   analyser.fftSize = 256;
   const bufferLength = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
@@ -313,6 +315,7 @@
     }
   }
   draw();
+  audioInitialized = true;
 
   // Playlist
   fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
