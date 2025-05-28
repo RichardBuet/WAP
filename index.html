@@ -323,101 +323,113 @@ const eqContainer = document.getElementById("eqSliders");
 let trackList = [];
 let currentTrack = 0;
 
-// === CONTEXTO DE AUDIO ===
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const gainNode = audioCtx.createGain();
-const analyser = audioCtx.createAnalyser();
-const source = audioCtx.createMediaElementSource(audio);
-
-// === BANDA EQ DEFINIDA CON COLOR E ID ===
-const bands = [
-  { freq: 60, id: 'band60', color: '#ff4136' },
-  { freq: 170, id: 'band170', color: '#ff851b' },
-  { freq: 310, id: 'band310', color: '#ffdc00' },
-  { freq: 600, id: 'band600', color: '#2ecc40' },
-  { freq: 1000, id: 'band1000', color: '#01ff70' },
-  { freq: 3000, id: 'band3000', color: '#0074d9' },
-  { freq: 6000, id: 'band6000', color: '#7fdbff' },
-  { freq: 12000, id: 'band12000', color: '#b10dc9' },
-  { freq: 14000, id: 'band14000', color: '#f012be' },
-  { freq: 16000, id: 'band16000', color: '#aaaaaa' }
-];
-
-// === FILTROS Y SLIDERS DINÁMICOS ===
-const filters = bands.map((band, index) => {
-  const filter = audioCtx.createBiquadFilter();
-  filter.type = "peaking";
-  filter.frequency.value = band.freq;
-  filter.Q.value = 1;
-  filter.gain.value = 0;
-
-  // Crear slider HTML
-  const slider = document.createElement("input");
-  slider.type = "range";
-  slider.min = -12;
-  slider.max = 12;
-  slider.step = 1;
-  slider.value = 0;
-  slider.id = band.id;
-  slider.className = "eq-band";
-  slider.style.setProperty('--band-color', band.color);
-
-  // Evento para actualizar filtro y efecto visual
-//   slider.addEventListener("touchstart", handleSliderChange, { passive: true });
-// slider.addEventListener("touchmove", handleSliderChange, { passive: true });
-// slider.addEventListener("touchend", handleSliderChange, { passive: true });
-  slider.addEventListener("input", () => {
-    const val = parseFloat(slider.value);
-    filter.gain.value = val;
-    const hue = (val + 12) * 11.25;
-    slider.style.filter = `hue-rotate(${hue}deg)`;
-  });
-
-  // Insertar en el contenedor EQ
-  eqContainer.appendChild(slider);
-
-  return filter;
-});
-
-// === CONECTAR FILTROS ===
-source.connect(filters[0]);
-for (let i = 0; i < filters.length - 1; i++) {
-  filters[i].connect(filters[i + 1]);
-}
-filters[filters.length - 1].connect(gainNode);
-gainNode.connect(analyser);
-analyser.connect(audioCtx.destination);
-
-// === CONTROL DE VOLUMEN ===
-volumeSlider.addEventListener("input", () => {
-  gainNode.gain.value = parseFloat(volumeSlider.value);
-});
-
-// === VISUALIZADOR ===
+// === CANVAS VISUALIZER ===
 const canvas = document.getElementById("visualizer");
 const ctx = canvas.getContext("2d");
-analyser.fftSize = 256;
-const bufferLength = analyser.frequencyBinCount;
-const dataArray = new Uint8Array(bufferLength);
 
-function draw() {
-  requestAnimationFrame(draw);
-  analyser.getByteFrequencyData(dataArray);
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+// === CONTEXTO DE AUDIO ===
+let audioCtx;
+let analyser;
+let source;
+let gainNode;
+let filters = [];
 
-  const barWidth = (canvas.width / bufferLength) * 1.5;
-  let x = 0;
-  for (let i = 0; i < bufferLength; i++) {
-    const barHeight = dataArray[i];
-    ctx.fillStyle = "#0f0";
-    ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
-    x += barWidth + 1;
+function initAudioContext() {
+  if (audioCtx) return;
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  source = audioCtx.createMediaElementSource(audio);
+  gainNode = audioCtx.createGain();
+  analyser = audioCtx.createAnalyser();
+
+  // === FRECUENCIAS DEL EQ ===
+  const bands = [
+    { freq: 60, id: 'band60', color: '#ff4136' },
+    { freq: 170, id: 'band170', color: '#ff851b' },
+    { freq: 310, id: 'band310', color: '#ffdc00' },
+    { freq: 600, id: 'band600', color: '#2ecc40' },
+    { freq: 1000, id: 'band1000', color: '#01ff70' },
+    { freq: 3000, id: 'band3000', color: '#0074d9' },
+    { freq: 6000, id: 'band6000', color: '#7fdbff' },
+    { freq: 12000, id: 'band12000', color: '#b10dc9' },
+    { freq: 14000, id: 'band14000', color: '#f012be' },
+    { freq: 16000, id: 'band16000', color: '#aaaaaa' }
+  ];
+
+  filters = bands.map((band, index) => {
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "peaking";
+    filter.frequency.value = band.freq;
+    filter.Q.value = 1;
+    filter.gain.value = 0;
+
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = -12;
+    slider.max = 12;
+    slider.step = 1;
+    slider.value = 0;
+    slider.id = band.id;
+    slider.className = "eq-band";
+    slider.style.setProperty('--band-color', band.color);
+
+    slider.addEventListener("input", () => {
+      const val = parseFloat(slider.value);
+      filter.gain.value = val;
+      const hue = (val + 12) * 11.25;
+      slider.style.filter = `hue-rotate(${hue}deg)`;
+    });
+
+    eqContainer.appendChild(slider);
+
+    return filter;
+  });
+
+  // === CONECTAR EN CADENA ===
+  source.connect(filters[0]);
+  for (let i = 0; i < filters.length - 1; i++) {
+    filters[i].connect(filters[i + 1]);
   }
-}
-draw();
+  filters[filters.length - 1].connect(gainNode);
+  gainNode.connect(analyser);
+  analyser.connect(audioCtx.destination);
 
-// === PLAYLIST ===
+  // === CONTROL DE VOLUMEN ===
+  volumeSlider.addEventListener("input", () => {
+    gainNode.gain.value = parseFloat(volumeSlider.value);
+  });
+
+  // === VISUALIZACIÓN ===
+  analyser.fftSize = 256;
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+
+  function draw() {
+    requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArray);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const barWidth = (canvas.width / bufferLength) * 1.5;
+    let x = 0;
+    for (let i = 0; i < bufferLength; i++) {
+      const barHeight = dataArray[i];
+      ctx.fillStyle = "#0f0";
+      ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+      x += barWidth + 1;
+    }
+  }
+
+  draw();
+}
+
+// === INICIAR AUDIO ===
+// Llamar al crear contexto solo cuando el usuario interactúe
+audio.addEventListener("play", () => {
+  if (!audioCtx) initAudioContext();
+  audioCtx.resume();
+});
+
+// === CARGAR PLAYLIST ===
 fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
   .then(res => res.json())
   .then(data => {
@@ -445,21 +457,27 @@ function loadTrack(index) {
 }
 
 function play() {
-  audioCtx.resume();
-  audio.play();
+  if (!audioCtx) initAudioContext();
+  audioCtx.resume().then(() => {
+    audio.play();
+  });
 }
+
 function pause() {
   audio.pause();
 }
+
 function stop() {
   audio.pause();
   audio.currentTime = 0;
 }
+
 function next() {
   currentTrack = (currentTrack + 1) % trackList.length;
   loadTrack(currentTrack);
   play();
 }
+
 function prev() {
   currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
   loadTrack(currentTrack);
@@ -467,161 +485,6 @@ function prev() {
 }
 </script>
 
-
-  <script>
-  const audio = document.getElementById("audio");
-  const playlist = document.getElementById("playlist");
-  const title = document.getElementById("trackTitle");
-  const progress = document.getElementById("progress");
-  const canvas = document.getElementById("visualizer");
-  const ctx = canvas.getContext("2d");
-
-  let trackList = [];
-  let currentTrack = 0;
-  let audioInitialized = false;
-  let analyser, bufferLength, dataArray;
-
-  // Cargar lista desde GitHub
-  fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
-    .then(res => res.json())
-    .then(data => {
-      trackList = data;
-      playlist.innerHTML = '';
-      data.forEach((track, index) => {
-        const li = document.createElement('li');
-        li.textContent = track.title;
-        li.dataset.index = index;
-        li.style.cursor = "pointer";
-        li.onclick = () => {
-          loadTrack(index);
-          play();
-        };
-        playlist.appendChild(li);
-      });
-      loadTrack(0);
-    });
-
-  function updatePlaylistHighlight() {
-    [...playlist.children].forEach((li, i) => {
-      li.style.backgroundColor = i == currentTrack ? "#0f0" : "transparent";
-      li.style.color = i == currentTrack ? "#000" : "#0f0";
-    });
-  }
-
-  function loadTrack(index) {
-    currentTrack = index;
-    audio.src = trackList[index].url;
-    title.textContent = trackList[index].title;
-    updatePlaylistHighlight();
-  }
-
-  function initAudioContext() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaElementSource(audio);
-    analyser = audioCtx.createAnalyser();
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
-    analyser.fftSize = 256;
-    bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    draw();
-  }
-
-  function draw() {
-    requestAnimationFrame(draw);
-    if (!analyser) return;
-    analyser.getByteFrequencyData(dataArray);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const barWidth = (canvas.width / bufferLength) * 1.5;
-    let x = 0;
-    for (let i = 0; i < bufferLength; i++) {
-      const barHeight = dataArray[i];
-      ctx.fillStyle = "#0f0";
-      ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
-      x += barWidth + 1;
-    }
-  }
-
-  function play() {
-    if (!audioInitialized) {
-      initAudioContext();
-      audioInitialized = true;
-    }
-    audio.play();
-  }
-
-  function pause() {
-    audio.pause();
-  }
-
-  function stop() {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-
-  function next() {
-    currentTrack = (currentTrack + 1) % trackList.length;
-    loadTrack(currentTrack);
-    play();
-  }
-
-  function prev() {
-    currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
-    loadTrack(currentTrack);
-    play();
-  }
-
-  audio.addEventListener('timeupdate', () => {
-    if (audio.duration) {
-      progress.value = (audio.currentTime / audio.duration) * 100;
-    }
-  });
-
-  progress.addEventListener('input', () => {
-    audio.currentTime = (progress.value / 100) * audio.duration;
-  });
-</script>
-
-
-
-  
-  <script>
-const bands = [
-  { id: 'band60', color: '#ff4136' },
-  { id: 'band170', color: '#ff851b' },
-  { id: 'band310', color: '#ffdc00' },
-  { id: 'band600', color: '#2ecc40' },
-  { id: 'band1000', color: '#01ff70' },
-  { id: 'band3000', color: '#0074d9' },
-  { id: 'band6000', color: '#7fdbff' },
-  { id: 'band12000', color: '#b10dc9' },
-  { id: 'band14000', color: '#f012be' },
-  { id: 'band16000', color: '#aaaaaa' }
-];
-
-// Función para manejar el cambio de valor del slider
-function handleSliderChange(event) {
-  const el = event.target;
-  const value = el.value;
-  const hue = value * 2.6; // escala de rotación
-  el.style.filter = `hue-rotate(${hue}deg)`;
-}
-
-// Aplicar estilo e interacción a cada banda
-bands.forEach(band => {
-  const el = document.getElementById(band.id);
-  if (!el) return;
-
-  // Estilo base
-  el.style.setProperty('--band-color', band.color);
-
-  // Eventos para PC + Móvil
-  ['input', 'touchstart', 'touchmove'].forEach(evt =>
-    el.addEventListener(evt, handleSliderChange, { passive: true })
-  );
-});
-</script>
 
 
 </body>
