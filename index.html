@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
 <!--   <meta name="viewport" content="width=device-width, initial-scale=1">-->
   <meta name="viewport" content="width=device-width, initial-scale=1.6, maximum-scale=1.0, user-scalable=yes" /> 
-  <title>Winamp Retro V0.3.0</title>
+  <title>Winamp Retro V0.3.0.1</title>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script> 
 <!-- <script src='https://api.html5media.info/1.1.6/html5media.min.js'></script>  -->
 
@@ -24,6 +24,7 @@
       box-shadow: 0 0 20px #0f0;
       width: 320px;
       padding: 10px;
+      BORDER-RADIUS: 10PX;
     }
 
     .display {
@@ -65,7 +66,9 @@
 
     #playlist {
       width: 100%;
-      max-height: 100px;
+      font-size: small;
+      height: 115px;
+      max-height: 120px;
       background: #000;
       color: #0f0;
       border: 1px solid #0f0;
@@ -93,29 +96,34 @@
     }*/
 
     canvas {
-      width: 100%;
-      height: 80px;
+      width: 99%;
+      height: 100px;
       background: #000;
-      border: 1px solid #0f0;
+      border: 0px solid #0f0;
       margin-bottom: 10px;
-    }
+      border: 2px solid #555265;
+      }
 
     .eq-container {
       color: #0f0;
       font-size: 12px;
-      margin-top: 10px;
+      margin-top: 1px;
+      margin-bottom: 12px;
+      border: 2px solid #555265;
     }
 
     #volume {
       width: 100%;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
 
-    .eq-sliders {
+    .eqSliders {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
+      border: 2px solid #555265;
+      PADDING: 2PX;
     }
 
     .eq-band {
@@ -133,6 +141,19 @@
       background: #000;
       border: 1px solid #0f0;
     }
+
+
+    input[type=range].eq-band {
+      width: 20px;
+      height: 120px;
+      writing-mode: bt-lr;
+      -webkit-appearance: slider-vertical;
+      background: var(--band-color, #00ff00);
+      border-radius: 5px;
+      margin: 2px;
+      transition: filter 0.3s;
+    }
+
 
     .eq-band label {
       margin-top: 4px;
@@ -181,7 +202,57 @@
       width: 100px;
     }
 
+.band {
+  background-color: var(--band-color, #00ff00);
+  transition: filter 0.3s ease;
+}
 
+/*
+font-family: 'Share Tech Mono', monospace;
+font-family: 'Source Sans Pro', sans-serif;
+font-family: 'Aldrich', sans-serif;
+font-family: 'VT323', monospace;
+*/
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Source+Sans+Pro&display=swap&family=Aldrich&family=VT323&display=swap');
+.title{
+ /* width: 100%;
+  padding: .5rem 0;
+  justify-content: center;*/
+  display: flex;
+  align-items: center;
+}
+
+.resizable{
+  cursor: pointer;
+}
+
+h1{
+  width: auto;
+  font-size: 1rem;
+  letter-spacing: 0.3rem;
+  font-family: 'VT323', monospace;
+  color: #8A8BA0;
+  padding: 0 .5rem;
+}
+h2{
+  width: auto;
+  font-size: 0.6rem;
+  letter-spacing: 0.3rem;
+  font-family: 'VT323', monospace;
+  color: #8A8BA0;
+  padding: 0 .5rem;
+}
+.line{
+  border: 1px solid black;
+  border-radius: 3px;
+  display: inline-block;
+  background: linear-gradient(#87785A, #635A42 35%, #202024 50%, #635A42 65%, #87785A);
+}
+
+.line-first{
+  width: 37.5%;
+  height: .75em;  
+}
 
 
   </style>
@@ -190,6 +261,13 @@
 
 <div class="winamp">
   <div class="one">
+    <div class="title">
+        <div class="line line-first">
+        </div>
+          <h1> WINAMP </h1>
+        <div class="line line-first">
+        </div>
+      </div>
   <div class="display" id="trackTitle">Cargando lista...</div>
 
     <ul id="playlist"></ul>
@@ -203,6 +281,16 @@
   </div>
 
   <!-- <input type="range" id="progress" value="0" max="100"> eq-sliders step="0.01"-->
+ 
+  <div class="title">
+        <div class="line line-first">
+        </div>
+          <h2> VISUALISATION </h2>
+        <div class="line line-first">
+        </div>
+      </div>
+
+
   <canvas id="visualizer" width="300" height="140"></canvas>
 </div>
 <div class="two">
@@ -211,262 +299,171 @@
     <input type="range" class="player__level" id="volume" min="0" max="1.00" step="0.01" value="0.80" >
   </div>
 
+  <div class="title">
+        <div class="line line-first">
+        </div>
+          <h2> EQUALIZADOR </h2>
+        <div class="line line-first">
+        </div>
+      </div>
 
-    <div class="eq-sliders" id="eqSliders"></div>
-  
+  <div id="eqSliders" class="eqSliders"></div>
 
   <audio id="audio" crossorigin="anonymous"></audio>
 </div>
 </div>
 
 <script>
-  const audio = document.getElementById("audio");
-  const playlist = document.getElementById("playlist");
-  const title = document.getElementById("trackTitle");
-  // const progress = document.getElementById("progress");
-  const volumeSlider = document.getElementById("volume");
-  const eqContainer = document.getElementById("eqSliders");
+const audio = document.getElementById("audio");
+const playlist = document.getElementById("playlist");
+const title = document.getElementById("trackTitle");
+const volumeSlider = document.getElementById("volume");
+const eqContainer = document.getElementById("eqSliders");
 
-  let trackList = [];
-  let currentTrack = 0;
-  let audioInitialized = false;
+let trackList = [];
+let currentTrack = 0;
 
-  // Audio Context y EQ
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const gainNode = audioCtx.createGain();
-  const analyser = audioCtx.createAnalyser();
-  const source = audioCtx.createMediaElementSource(audio);
+// === CONTEXTO DE AUDIO ===
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const gainNode = audioCtx.createGain();
+const analyser = audioCtx.createAnalyser();
+const source = audioCtx.createMediaElementSource(audio);
 
-  const eqBands = [
-    { freq: 60 }, { freq: 125 }, { freq: 250 }, { freq: 500 }, { freq: 1000 },
-    { freq: 2000 }, { freq: 4000 }, { freq: 8000 }, { freq: 12000 }, { freq: 16000 }
-  ];
+// === BANDA EQ DEFINIDA CON COLOR E ID ===
+const bands = [
+  { freq: 60, id: 'band60', color: '#ff4136' },
+  { freq: 170, id: 'band170', color: '#ff851b' },
+  { freq: 310, id: 'band310', color: '#ffdc00' },
+  { freq: 600, id: 'band600', color: '#2ecc40' },
+  { freq: 1000, id: 'band1000', color: '#01ff70' },
+  { freq: 3000, id: 'band3000', color: '#0074d9' },
+  { freq: 6000, id: 'band6000', color: '#7fdbff' },
+  { freq: 12000, id: 'band12000', color: '#b10dc9' },
+  { freq: 14000, id: 'band14000', color: '#f012be' },
+  { freq: 16000, id: 'band16000', color: '#aaaaaa' }
+];
 
-  const filters = eqBands.map(band => {
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = "peaking";
-    filter.frequency.value = band.freq;
-    filter.Q.value = 1;
-    filter.gain.value = 0;
-    return filter;
+// === FILTROS Y SLIDERS DINÁMICOS ===
+const filters = bands.map((band, index) => {
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "peaking";
+  filter.frequency.value = band.freq;
+  filter.Q.value = 1;
+  filter.gain.value = 0;
+
+  // Crear slider HTML
+  const slider = document.createElement("input");
+  slider.type = "range";
+  slider.min = -12;
+  slider.max = 12;
+  slider.step = 1;
+  slider.value = 0;
+  slider.id = band.id;
+  slider.className = "eq-band";
+  slider.style.setProperty('--band-color', band.color);
+
+  // Evento para actualizar filtro y efecto visual
+  slider.addEventListener("input", () => {
+    const val = parseFloat(slider.value);
+    filter.gain.value = val;
+    const hue = (val + 12) * 11.25;
+    slider.style.filter = `hue-rotate(${hue}deg)`;
   });
 
-  // Encadenar filtros
-  source.connect(filters[0]);
-  for (let i = 0; i < filters.length - 1; i++) {
-    filters[i].connect(filters[i + 1]);
-  }
-  filters[filters.length - 1].connect(gainNode);
-  gainNode.connect(analyser);
-  analyser.connect(audioCtx.destination);
+  // Insertar en el contenedor EQ
+  eqContainer.appendChild(slider);
 
-  // Crear sliders EQ
-  eqBands.forEach((band, i) => {
-    const bandDiv = document.createElement("div");
-    bandDiv.className = "eq-band";
-
-    const slider = document.createElement("input");
-    slider.type = "range";
-    slider.min = -12;
-    slider.max = 12;
-    slider.step = 1;
-    slider.value = 0;
-    slider.addEventListener("input", () => {
-      filters[i].gain.value = parseFloat(slider.value);
-    });
-
-    const label = document.createElement("label");
-    label.textContent = band.freq >= 1000 ? (band.freq / 1000) + "k" : band.freq;
-
-    bandDiv.appendChild(slider);
-    bandDiv.appendChild(label);
-    eqContainer.appendChild(bandDiv);
-  });
-  
-
-
-
-
-  // Volumen
-  volumeSlider.addEventListener("input", () => {
-    gainNode.gain.value = parseFloat(volumeSlider.value);
-  });
-
-  // Visualizador
-  const canvas = document.getElementById("visualizer");
-  const ctx = canvas.getContext("2d");
-
-  analyser.fftSize = 256;
-  const bufferLength = analyser.frequencyBinCount;
-  const dataArray = new Uint8Array(bufferLength);
-
-  function draw() {
-    requestAnimationFrame(draw);
-    analyser.getByteFrequencyData(dataArray);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const barWidth = (canvas.width / bufferLength) * 1.5;
-    let x = 0;
-    for (let i = 0; i < bufferLength; i++) {
-      const barHeight = dataArray[i];
-      ctx.fillStyle = "#0f0";
-      ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
-      x += barWidth + 1;
-    }
-  }
-  draw();
-  audioInitialized = true;
-
-  // Playlist
-  fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
-    .then(res => res.json())
-    .then(data => {
-      trackList = data;
-      playlist.innerHTML = '';
-      data.forEach((track, index) => {
-        const li = document.createElement('li');
-        li.textContent = track.title;
-        li.dataset.index = index;
-        li.addEventListener('click', () => {
-          loadTrack(index);
-          play();
-        });
-        playlist.appendChild(li);
-      });
-      loadTrack(0);
-    });
-
-  function loadTrack(index) {
-    currentTrack = index;
-    audio.src = trackList[index].url;
-    title.textContent = trackList[index].title;
-    [...playlist.children].forEach(li => li.classList.remove('active'));
-    playlist.children[index].classList.add('active');
-
-  }
-
-  function play() {
-    audioCtx.resume();
-    audio.play();
-  }
-
-  function pause() {
-    audio.pause();
-  }
-
-  function stop() {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-
-  function next() {
-    currentTrack = (currentTrack + 1) % trackList.length;
-    loadTrack(currentTrack);
-    play();
-  }
-
-  function prev() {
-    currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
-    loadTrack(currentTrack);
-    play();
-  }
-
-  playlist.addEventListener('change', () => {
-    loadTrack(playlist.value);
-    play();
-  });
-
-  // audio.addEventListener('timeupdate', () => {
-  //   if (audio.duration) {
-  //     progress.value = (audio.currentTime / audio.duration) * 100;
-  //   }
-  // });
-
-  // progress.addEventListener('input', () => {
-  //   audio.currentTime = (progress.value / 100) * audio.duration;
-  // });
-</script>
-
-
-<script>
-  document.querySelectorAll('.eq-slider').forEach(slider => {
-    slider.addEventListener('input', function () {
-      const val = parseFloat(this.value);
-      const hue = (val + 12) * 15; // mapea -12 a 12 → 0 a 360 grados
-      this.style.filter = `hue-rotate(${hue}deg)`;
-    });
-  });
-</script>
-
-<script>
-  const context = new (window.AudioContext || window.webkitAudioContext)();
-  const source = context.createMediaElementSource(document.getElementById("player"));
-
-  const equalizerContainer = document.getElementById("equalizer");
-  const filters = [];
-
-  const freqs = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
-  let previousNode = source;
-
-  freqs.forEach((freq) => {
-    const filter = context.createBiquadFilter();
-    filter.type = "peaking";
-    filter.frequency.value = freq;
-    filter.Q.value = 1;
-    filter.gain.value = 0;
-
-    previousNode.connect(filter);
-    previousNode = filter;
-
-    filters.push(filter);
-
-    // Crear control visual
-    const band = document.createElement("div");
-    band.className = "eq-band";
-
-    const label = document.createElement("label");
-    label.textContent = `${freq}Hz`;
-
-    const input = document.createElement("input");
-    input.type = "range";
-    input.min = -10;
-    input.max = 10;
-    input.step = 1;
-    input.value = 0;
-
-    // Escuchar cambios en el slider
-    input.addEventListener("input", () => {
-      const val = parseFloat(input.value);
-      filter.gain.value = val;
-
-      // Eliminar clases previas
-      input.classList.remove("low", "mid", "high");
-
-      // Aplicar clase según valor
-      if (val === 0) input.classList.add("mid");
-      else if (val > 0) input.classList.add("high");
-      else input.classList.add("low");
-    });
-
-    band.appendChild(label);
-    band.appendChild(input);
-    equalizerContainer.appendChild(band);
-  });
-
-  // Conectar última banda al destino (salida)
-  previousNode.connect(context.destination);
-</script>
-
-<script>
-// VOLUMEN - BARRA
-  $(function() {
-  var rangePercent = $('.eq-band [type="range"]').val();
-  $('.eq-band [type="range"]').on('change input', function() {
-    rangePercent = $('.eq-band [type="range"]').val();
-    $('.eq-container label noo').text(rangePercent);
-    $('.eq-band [type="range"]').css('filter', 'hue-rotate(' + (rangePercent * 11.25) + 'deg ) ');
-  });
+  return filter;
 });
+
+// === CONECTAR FILTROS ===
+source.connect(filters[0]);
+for (let i = 0; i < filters.length - 1; i++) {
+  filters[i].connect(filters[i + 1]);
+}
+filters[filters.length - 1].connect(gainNode);
+gainNode.connect(analyser);
+analyser.connect(audioCtx.destination);
+
+// === CONTROL DE VOLUMEN ===
+volumeSlider.addEventListener("input", () => {
+  gainNode.gain.value = parseFloat(volumeSlider.value);
+});
+
+// === VISUALIZADOR ===
+const canvas = document.getElementById("visualizer");
+const ctx = canvas.getContext("2d");
+analyser.fftSize = 256;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+
+function draw() {
+  requestAnimationFrame(draw);
+  analyser.getByteFrequencyData(dataArray);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const barWidth = (canvas.width / bufferLength) * 1.5;
+  let x = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = dataArray[i];
+    ctx.fillStyle = "#0f0";
+    ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+    x += barWidth + 1;
+  }
+}
+draw();
+
+// === PLAYLIST ===
+fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
+  .then(res => res.json())
+  .then(data => {
+    trackList = data;
+    playlist.innerHTML = '';
+    data.forEach((track, index) => {
+      const li = document.createElement('li');
+      li.textContent = track.title;
+      li.dataset.index = index;
+      li.addEventListener('click', () => {
+        loadTrack(index);
+        play();
+      });
+      playlist.appendChild(li);
+    });
+    loadTrack(0);
+  });
+
+function loadTrack(index) {
+  currentTrack = index;
+  audio.src = trackList[index].url;
+  title.textContent = trackList[index].title;
+  [...playlist.children].forEach(li => li.classList.remove('active'));
+  playlist.children[index].classList.add('active');
+}
+
+function play() {
+  audioCtx.resume();
+  audio.play();
+}
+function pause() {
+  audio.pause();
+}
+function stop() {
+  audio.pause();
+  audio.currentTime = 0;
+}
+function next() {
+  currentTrack = (currentTrack + 1) % trackList.length;
+  loadTrack(currentTrack);
+  play();
+}
+function prev() {
+  currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
+  loadTrack(currentTrack);
+  play();
+}
 </script>
+
+
 </body>
 </html>
