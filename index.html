@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
 <!--   <meta name="viewport" content="width=device-width, initial-scale=1">-->
-  <meta name="viewport" content="width=device-width, initial-scale=1.6, maximum-scale=1.0, user-scalable=yes" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.6, maximum-scale=1.0, user-scalable=no" /> 
   <title>Winamp Retro V0.3.0.1</title>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script> 
 <!-- <script src='https://api.html5media.info/1.1.6/html5media.min.js'></script>  -->
@@ -67,8 +67,8 @@
     #playlist {
       width: 100%;
       font-size: small;
-      height: 115px;
-      max-height: 120px;
+      height: 120px;
+      max-height: 140px;
       background: #000;
       color: #0f0;
       border: 1px solid #0f0;
@@ -313,147 +313,106 @@ h2{
 </div>
 </div>
 
-
 <script>
 const audio = document.getElementById("audio");
 const playlist = document.getElementById("playlist");
 const title = document.getElementById("trackTitle");
 const volumeSlider = document.getElementById("volume");
 const eqContainer = document.getElementById("eqSliders");
-const canvas = document.getElementById("visualizer");
-const ctx = canvas.getContext("2d");
-
-let audioCtx;
-let gainNode;
-let analyser;
-let source;
-let filters = [];
-let audioInitialized = false;
-let drawRunning = false;
 
 let trackList = [];
 let currentTrack = 0;
 
-// === EQ BANDS ===
+// === CONTEXTO DE AUDIO ===
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const gainNode = audioCtx.createGain();
+const analyser = audioCtx.createAnalyser();
+const source = audioCtx.createMediaElementSource(audio);
+
+// === BANDA EQ DEFINIDA CON COLOR E ID ===
 const bands = [
-  { freq: 60, color: '#ff4136' },
-  { freq: 170, color: '#ff851b' },
-  { freq: 310, color: '#ffdc00' },
-  { freq: 600, color: '#2ecc40' },
-  { freq: 1000, color: '#01ff70' },
-  { freq: 3000, color: '#0074d9' },
-  { freq: 6000, color: '#7fdbff' },
-  { freq: 12000, color: '#b10dc9' },
-  { freq: 14000, color: '#f012be' },
-  { freq: 16000, color: '#aaaaaa' }
+  { freq: 60, id: 'band60', color: '#ff4136' },
+  { freq: 170, id: 'band170', color: '#ff851b' },
+  { freq: 310, id: 'band310', color: '#ffdc00' },
+  { freq: 600, id: 'band600', color: '#2ecc40' },
+  { freq: 1000, id: 'band1000', color: '#01ff70' },
+  { freq: 3000, id: 'band3000', color: '#0074d9' },
+  { freq: 6000, id: 'band6000', color: '#7fdbff' },
+  { freq: 12000, id: 'band12000', color: '#b10dc9' },
+  { freq: 14000, id: 'band14000', color: '#f012be' },
+  { freq: 16000, id: 'band16000', color: '#aaaaaa' }
 ];
 
-// === INICIALIZAR AUDIO ===
-function initAudio() {
-  if (audioInitialized) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  gainNode = audioCtx.createGain();
-  analyser = audioCtx.createAnalyser();
-  source = audioCtx.createMediaElementSource(audio);
+// === FILTROS Y SLIDERS DINÁMICOS ===
+const filters = bands.map((band, index) => {
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "peaking";
+  filter.frequency.value = band.freq;
+  filter.Q.value = 1;
+  filter.gain.value = 0;
 
-  filters = bands.map((band, i) => {
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = "peaking";
-    filter.frequency.value = band.freq;
-    filter.Q.value = 1;
-    filter.gain.value = 0;
+  // Crear slider HTML
+  const slider = document.createElement("input");
+  slider.type = "range";
+  slider.min = -12;
+  slider.max = 12;
+  slider.step = 1;
+  slider.value = 0;
+  slider.id = band.id;
+  slider.className = "eq-band";
+  slider.style.setProperty('--band-color', band.color);
 
-    // Crear slider
-    const slider = document.createElement("input");
-    slider.type = "range";
-    slider.min = -12;
-    slider.max = 12;
-    slider.step = 1;
-    slider.value = 0;
-    slider.className = "eq-band";
-    slider.style.setProperty('--band-color', band.color);
-    slider.addEventListener("input", () => {
-      const val = parseFloat(slider.value);
-      filter.gain.value = val;
-      const hue = (val + 12) * 11.25;
-      slider.style.filter = `hue-rotate(${hue}deg)`;
-    });
-    eqContainer.appendChild(slider);
-
-    return filter;
+  // Evento para actualizar filtro y efecto visual
+  slider.addEventListener("input", () => {
+    const val = parseFloat(slider.value);
+    filter.gain.value = val;
+    const hue = (val + 12) * 11.25;
+    slider.style.filter = `hue-rotate(${hue}deg)`;
   });
 
-  // Encadenar filtros
-  source.connect(filters[0]);
-  for (let i = 0; i < filters.length - 1; i++) {
-    filters[i].connect(filters[i + 1]);
-  }
-  filters[filters.length - 1].connect(gainNode);
-  gainNode.connect(analyser);
-  analyser.connect(audioCtx.destination);
+  // Insertar en el contenedor EQ
+  eqContainer.appendChild(slider);
 
-  volumeSlider.addEventListener("input", () => {
-    gainNode.gain.value = parseFloat(volumeSlider.value);
-  });
+  return filter;
+});
 
-  audioInitialized = true;
-  startVisualizer();
+// === CONECTAR FILTROS ===
+source.connect(filters[0]);
+for (let i = 0; i < filters.length - 1; i++) {
+  filters[i].connect(filters[i + 1]);
 }
+filters[filters.length - 1].connect(gainNode);
+gainNode.connect(analyser);
+analyser.connect(audioCtx.destination);
+
+// === CONTROL DE VOLUMEN ===
+volumeSlider.addEventListener("input", () => {
+  gainNode.gain.value = parseFloat(volumeSlider.value);
+});
 
 // === VISUALIZADOR ===
-function startVisualizer() {
-  if (drawRunning) return;
-  analyser.fftSize = 256;
-  const bufferLength = analyser.frequencyBinCount;
-  const dataArray = new Uint8Array(bufferLength);
+const canvas = document.getElementById("visualizer");
+const ctx = canvas.getContext("2d");
+analyser.fftSize = 256;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
 
-  function draw() {
-    drawRunning = true;
-    requestAnimationFrame(draw);
-    analyser.getByteFrequencyData(dataArray);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+function draw() {
+  requestAnimationFrame(draw);
+  analyser.getByteFrequencyData(dataArray);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const barWidth = (canvas.width / bufferLength) * 1.5;
-    let x = 0;
-    for (let i = 0; i < bufferLength; i++) {
-      const barHeight = dataArray[i];
-      ctx.fillStyle = "#0f0";
-      ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
-      x += barWidth + 1;
-    }
+  const barWidth = (canvas.width / bufferLength) * 1.5;
+  let x = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = dataArray[i];
+    ctx.fillStyle = "#0f0";
+    ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+    x += barWidth + 1;
   }
-
-  draw();
 }
-
-// === CONTROLES ===
-function play() {
-  initAudio(); // ← ¡Esto activa EQ y canvas!
-  audioCtx.resume();
-  audio.play();
-}
-
-function pause() {
-  audio.pause();
-}
-
-function stop() {
-  audio.pause();
-  audio.currentTime = 0;
-}
-
-function next() {
-  currentTrack = (currentTrack + 1) % trackList.length;
-  loadTrack(currentTrack);
-  play();
-}
-
-function prev() {
-  currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
-  loadTrack(currentTrack);
-  play();
-}
+draw();
 
 // === PLAYLIST ===
 fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
@@ -482,11 +441,28 @@ function loadTrack(index) {
   playlist.children[index].classList.add('active');
 }
 
-// === DESBLOQUEAR AUDIO EN IPHONE ===
-document.addEventListener('touchstart', initAudio, { once: true });
-document.addEventListener('click', initAudio, { once: true });
+function play() {
+  audioCtx.resume();
+  audio.play();
+}
+function pause() {
+  audio.pause();
+}
+function stop() {
+  audio.pause();
+  audio.currentTime = 0;
+}
+function next() {
+  currentTrack = (currentTrack + 1) % trackList.length;
+  loadTrack(currentTrack);
+  play();
+}
+function prev() {
+  currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
+  loadTrack(currentTrack);
+  play();
+}
 </script>
-
 
 
 </body>
