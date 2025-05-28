@@ -363,6 +363,9 @@ const filters = bands.map((band, index) => {
   slider.style.setProperty('--band-color', band.color);
 
   // Evento para actualizar filtro y efecto visual
+  slider.addEventListener("touchstart", handleSliderChange, { passive: true });
+slider.addEventListener("touchmove", handleSliderChange, { passive: true });
+slider.addEventListener("touchend", handleSliderChange, { passive: true });
   slider.addEventListener("input", () => {
     const val = parseFloat(slider.value);
     filter.gain.value = val;
@@ -462,6 +465,43 @@ function prev() {
   loadTrack(currentTrack);
   play();
 }
+</script>
+
+  <script>
+const bands = [
+  { id: 'band60', color: '#ff4136' },
+  { id: 'band170', color: '#ff851b' },
+  { id: 'band310', color: '#ffdc00' },
+  { id: 'band600', color: '#2ecc40' },
+  { id: 'band1000', color: '#01ff70' },
+  { id: 'band3000', color: '#0074d9' },
+  { id: 'band6000', color: '#7fdbff' },
+  { id: 'band12000', color: '#b10dc9' },
+  { id: 'band14000', color: '#f012be' },
+  { id: 'band16000', color: '#aaaaaa' }
+];
+
+// Función para manejar el cambio de valor del slider
+function handleSliderChange(event) {
+  const el = event.target;
+  const value = el.value;
+  const hue = value * 2.6; // escala de rotación
+  el.style.filter = `hue-rotate(${hue}deg)`;
+}
+
+// Aplicar estilo e interacción a cada banda
+bands.forEach(band => {
+  const el = document.getElementById(band.id);
+  if (!el) return;
+
+  // Estilo base
+  el.style.setProperty('--band-color', band.color);
+
+  // Eventos para PC + Móvil
+  ['input', 'touchstart', 'touchmove'].forEach(evt =>
+    el.addEventListener(evt, handleSliderChange, { passive: true })
+  );
+});
 </script>
 
 
