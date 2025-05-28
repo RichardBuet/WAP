@@ -363,9 +363,9 @@ const filters = bands.map((band, index) => {
   slider.style.setProperty('--band-color', band.color);
 
   // Evento para actualizar filtro y efecto visual
-  slider.addEventListener("touchstart", handleSliderChange, { passive: true });
-slider.addEventListener("touchmove", handleSliderChange, { passive: true });
-slider.addEventListener("touchend", handleSliderChange, { passive: true });
+//   slider.addEventListener("touchstart", handleSliderChange, { passive: true });
+// slider.addEventListener("touchmove", handleSliderChange, { passive: true });
+// slider.addEventListener("touchend", handleSliderChange, { passive: true });
   slider.addEventListener("input", () => {
     const val = parseFloat(slider.value);
     filter.gain.value = val;
