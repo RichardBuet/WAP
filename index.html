@@ -467,6 +467,125 @@ function prev() {
 }
 </script>
 
+
+  <script>
+  const audio = document.getElementById("audio");
+  const playlist = document.getElementById("playlist");
+  const title = document.getElementById("trackTitle");
+  const progress = document.getElementById("progress");
+  const canvas = document.getElementById("visualizer");
+  const ctx = canvas.getContext("2d");
+
+  let trackList = [];
+  let currentTrack = 0;
+  let audioInitialized = false;
+  let analyser, bufferLength, dataArray;
+
+  // Cargar lista desde GitHub
+  fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
+    .then(res => res.json())
+    .then(data => {
+      trackList = data;
+      playlist.innerHTML = '';
+      data.forEach((track, index) => {
+        const li = document.createElement('li');
+        li.textContent = track.title;
+        li.dataset.index = index;
+        li.style.cursor = "pointer";
+        li.onclick = () => {
+          loadTrack(index);
+          play();
+        };
+        playlist.appendChild(li);
+      });
+      loadTrack(0);
+    });
+
+  function updatePlaylistHighlight() {
+    [...playlist.children].forEach((li, i) => {
+      li.style.backgroundColor = i == currentTrack ? "#0f0" : "transparent";
+      li.style.color = i == currentTrack ? "#000" : "#0f0";
+    });
+  }
+
+  function loadTrack(index) {
+    currentTrack = index;
+    audio.src = trackList[index].url;
+    title.textContent = trackList[index].title;
+    updatePlaylistHighlight();
+  }
+
+  function initAudioContext() {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaElementSource(audio);
+    analyser = audioCtx.createAnalyser();
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    analyser.fftSize = 256;
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    draw();
+  }
+
+  function draw() {
+    requestAnimationFrame(draw);
+    if (!analyser) return;
+    analyser.getByteFrequencyData(dataArray);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const barWidth = (canvas.width / bufferLength) * 1.5;
+    let x = 0;
+    for (let i = 0; i < bufferLength; i++) {
+      const barHeight = dataArray[i];
+      ctx.fillStyle = "#0f0";
+      ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+      x += barWidth + 1;
+    }
+  }
+
+  function play() {
+    if (!audioInitialized) {
+      initAudioContext();
+      audioInitialized = true;
+    }
+    audio.play();
+  }
+
+  function pause() {
+    audio.pause();
+  }
+
+  function stop() {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+
+  function next() {
+    currentTrack = (currentTrack + 1) % trackList.length;
+    loadTrack(currentTrack);
+    play();
+  }
+
+  function prev() {
+    currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
+    loadTrack(currentTrack);
+    play();
+  }
+
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration) {
+      progress.value = (audio.currentTime / audio.duration) * 100;
+    }
+  });
+
+  progress.addEventListener('input', () => {
+    audio.currentTime = (progress.value / 100) * audio.duration;
+  });
+</script>
+
+
+
+  
   <script>
 const bands = [
   { id: 'band60', color: '#ff4136' },
