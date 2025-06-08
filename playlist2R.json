@@ -27,14 +27,12 @@
 {"title": "Radio Aktiv|Various", "url": "https://live.radio-aktiv.de/r-aktiv.mp3"},
 {"title": "Futura FM 90.5", "url": "https://streamer.fmfutura.com.ar/vivo.mp3"},
 {"title": "Latina 101", "url": "http://streaming.latina101.com.ar:9000/Repetidoras"},
-
 {"title": "Ingenio FM107.7", "url": "https://mmc-fm.ingeniosolutions.ar/FM107.7"},
 {"title": "Radio Zona Deportiva", "url": "https://radio.zonadeportivaweb.com.ar/stream.mp3"},
 {"title": "Radio Colonia", "url": "https://streaming1.hostingmontevideo.com:7019/stream"},
 {"title": "Late 93.1 FM", "url": "https://radiolinksmedia.net.ar/8252"},
 {"title": "Vorterix", "url": "https://ice2.edge-apps.net/radio1_high-20057.audio"},
-  {"title": "Los 40 AR", "url": "https://edge04.radiohdvivo.com/stream/los40"},
-
+{"title": "Los 40 AR", "url": "https://edge04.radiohdvivo.com/stream/los40"},
 {"title": "Alborada", "url": "https://sonando-us.digitalproserver.com/alborada.aac"},
 {"title": "Alegre", "url": "https://sonando-us.digitalproserver.com/alegre.aac"},
 {"title": "Alternativa", "url": "https://sonando-us.digitalproserver.com/alternativa.mp3"},
@@ -137,7 +135,4 @@
 {"title": "Vln", "url": "https://sonando-us.digitalproserver.com/vln"},
 {"title": "Vln", "url": "https://sonando-us.digitalproserver.com/vln_lo"},
 {"title": "Xqa-5", "url": "https://sonando-us.digitalproserver.com/xqa-5.aac"}
-
-
-
 ]
