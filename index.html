@@ -679,21 +679,26 @@ slider.addEventListener("input", () => {
 });
 
   
-
 // Posición inicial
 requestAnimationFrame(updateEQVisual);
 
 // Crear label con "+freq"
 const label = document.createElement("label");
-  label.textContent = band.freq >= 1000 ? (band.freq / 1000) + "k" : band.freq;
-  label.setAttribute("for", band.id);
-  label.className = "eq-label";
-// Agregar slider y label al contenedor
-  container.appendChild(slider);
-  container.appendChild(label);
+label.textContent = band.freq >= 1000 ? (band.freq / 1000) + "k" : band.freq;
+label.setAttribute("for", band.id);
+label.className = "eq-label";
+
+// Agregar control visual y label al contenedor
+container.appendChild(control);
+container.appendChild(label);
+
 // Insertar en el contenedor EQ principal
-  eqContainer.appendChild(container);
-  return filter;
+eqContainer.appendChild(container);
+
+return filter;
+
+
+  
 });
 
 // === CONECTAR FILTROS ===
