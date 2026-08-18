@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.6, maximum-scale=1.0, user-scalable=yes" /> 
+  <title>Winamp Retro V0.5.0.0</title>
+  <link rel="shortcut icon" href="https://skins.webamp.org/favicon.ico">
+  <meta name="description" content="Winamp Clasico Web">
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script> 
+
+  <style>
+
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Source+Sans+Pro&display=swap&family=Aldrich&family=VT323&display=swap');
+    
+    body {
+      background-color: #111;
+      color: #00ff00;
+      font-family: 'Tahoma', monospace;
+      display: flex;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .title{
+      display: flex;
+      align-items: center;
+    }
+
+    .resizable{
+      cursor: pointer;
+    }
+
+    h1{
+      width: auto;
+      font-size: 1rem;
+      letter-spacing: 0.3rem;
+      font-family: 'VT323', monospace;
+      color: #8A8BA0;
+      padding: 0 .5rem;
+    }
+    h2{
+      width: auto;
+      font-size: 0.6rem;
+      letter-spacing: 0.3rem;
+      font-family: 'VT323', monospace;
+      color: #8A8BA0;
+      padding: 0 .5rem;
+    }
+
+    .line{
+      border: 1px solid black;
+      border-radius: 3px;
+      display: inline-block;
+      background: linear-gradient(#87785A, #635A42 35%, #202024 50%, #635A42 65%, #87785A);
+    }
+
+    .line-first{
+      width: 37.5%;
+      height: .75em;  
+    }
+
+    .winamp {
+      font-family: 'VT323';
+      background: linear-gradient(to left, #1d1d2e, #39395a, #1d1d2e);
+      border: 2px solid #00ff00;
+      box-shadow: 0 0 20px #0f0;
+      width: 320px;
+      padding: 10px;
+      border-radius: 10px;
+     /* height: 85vh;*/
+    }
+
+
+
+    #playlist {
+      width: 100%;
+/*      font-size: small;
+      height: 115px;*/
+      max-height: 120px;
+      background: #000;
+      color: #0f0;
+      border: 1px solid #0f0;
+      margin-bottom: 10px;
+      overflow-y: auto;
+      list-style: none;
+      padding-left: 0;
+    }
+
+    #playlist li {
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    #playlist li.active {
+      background-color: #0f0;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 6px;
+    }
+
+    .controls button {
+      background: #bdced6;
+      color: #505b66;
+      font-weight: bold;
+      font-size: 14px;
+      border: 2px outset #556576;
+      padding: 4px 8px;
+      width: 40px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #505b66;
+    }
+
+    .controls button:hover {
+      background-color: #0f0;
+      color: #000;
+    }
+
+    canvas {
+      width: 99%;
+      height: 100px;
+      background: #000;
+      border: 0px solid #0f0;
+      margin-bottom: 10px;
+      border: 2px solid #555265;
+      }
+
+
+  /* =========================================================
+   EQUALIZADOR RETRO - CONTROL PERSONALIZADO
+   ========================================================= */
+
+.eq-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  color: #0f0;
+  font-size: 0.9rem;
+  margin-top: 6px;
+  margin-bottom: 7px;
+}
+
+/* ---------------- VOLUMEN ---------------- */
+
+.volSliders {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  border: 2px solid #555265;
+  padding: 2px;
+  width: 43px;
+}
+
+/* ---------------- CONTENEDOR EQ ---------------- */
+
+.eqSliders {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  border: 2px solid #555265;
+  padding: 4px 3px 2px 3px;
+  height: 118px;
+  flex: 1;
+}
+
+/* ---------------- CADA BANDA ---------------- */
+
+.eq-slider-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  margin: 0 3px;
+}
+
+/* ---------------- CONTROL ---------------- */
+
+.eq-control {
+  position: relative;
+  width: 20px;
+  height: 100px;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+/* ---------------- TRACK ---------------- */
+
+.eq-track {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+
+  width: 6px;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #858585 0%,
+      #4a4a4a 48%,
+      #272727 50%,
+      #4a4a4a 52%,
+      #858585 100%
+    );
+
+  border: 1px solid #151515;
+  box-shadow:
+    inset 0 0 2px #000,
+    0 0 1px #aaa;
+
+  border-radius: 2px;
+}
+
+/* ---------------- MARCA CENTRAL 0 dB ---------------- */
+
+.eq-zero {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 13px;
+  height: 2px;
+
+  background: #777;
+  opacity: 0.8;
+}
+
+/* ---------------- KNOB ---------------- */
+
+.eq-thumb {
+  position: absolute;
+
+  left: 50%;
+
+  width: 18px;
+  height: 10px;
+
+  transform: translate(-50%, 50%);
+
+  background:
+    linear-gradient(
+      to bottom,
+      #eeeeee 0%,
+      #c9c9c9 35%,
+      #888888 50%,
+      #c9c9c9 65%,
+      #eeeeee 100%
+    );
+
+  border: 1px solid #303030;
+  border-radius: 2px;
+
+  box-shadow:
+    0 1px 2px #000,
+    inset 0 0 1px #fff;
+
+  z-index: 3;
+}
+
+/* Línea verde sobre el knob */
+
+.eq-thumb::after {
+  content: "";
+
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 3px;
+
+  height: 2px;
+
+  background: #00ff00;
+
+  box-shadow: 0 0 3px #00ff00;
+}
+
+/* ---------------- VALOR ACTIVO ---------------- */
+
+.eq-active {
+  position: absolute;
+
+  left: 50%;
+  bottom: 0;
+
+  width: 3px;
+  height: 50%;
+
+  transform: translateX(-50%);
+
+  background: #00ff00;
+
+  box-shadow: 0 0 3px #00ff00;
+
+  pointer-events: none;
+}
+
+/* ---------------- LABEL ---------------- */
+
+.eq-label {
+  margin-top: 3px;
+  color: #00ff00;
+  font-family: 'VT323', monospace;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+/* ---------------- INPUT INVISIBLE ---------------- */
+
+/*
+   El input sigue existiendo para mantener compatibilidad
+   y permitir teclado, pero NO se utiliza su representación
+   gráfica nativa.
+*/
+
+.eq-hidden-input {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+    
+
+
+.info {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    background: #000;
+    color: #0f0;
+    padding: 0px 8px 3px 8px;
+    font-size: 1.4rem;
+    font-variant-caps: all-small-caps;
+    overflow: hidden;
+    margin-bottom: 10px;
+    border: 1px solid #0f0;
+    animation: blink 2s step-start 1s infinite;
+    -webkit-animation: blink 2s step-start 1s infinite;
+
+}
+    .display {
+      font-size: 1.5rem;
+    }
+
+    #time-display {
+      font-size: 1.3rem;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="winamp">
+  <div class="one">
+    <div class="title">
+        <div class="line line-first">
+        </div>
+          <h1> WINAMP </h1>
+        <div class="line line-first">
+        </div>
+      </div>
+   <div class="info">   
+    <div class="display" id="trackTitle">Cargando lista...</div>
+    <div id="time-display">0:00</div>
+   </div>
+    <ul id="playlist"></ul>
+
+  <div class="controls">
+    <button onclick="prev()">⏮</button>
+    <button onclick="play()">▶</button>
+    <button onclick="pause()">⏸</button>
+    <button onclick="stop()">⏹</button>
+    <button onclick="next()">⏭</button>
+  </div>
+
+  <div class="title">
+        <div class="line line-first">
+        </div>
+          <h2> VISUALIZADOR </h2>
+        <div class="line line-first">
+        </div>
+      </div>
+
+  <canvas id="visualizer" width="300" height="140"></canvas>
+</div>
+<div class="two">
+<!--   <div class="eq-container">
+    <label class="vol">Volumen</label>
+    <input type="range" class="player__level" id="volume" min="0" max="1.00" step="0.01" value="0.80" >
+  </div> -->
+
+  <div class="title">
+        <div class="line line-first">
+        </div>
+          <h2> EQUALIZADOR </h2>
+        <div class="line line-first">
+        </div>
+      </div>
+  <div class="eq-container">
+   <div  class="volSliders"> 
+        <input type="range" class="level" id="volume" min="0" max="1.00" step="0.01" value="0.80" ><label class="vol">Vol</label>
+   </div>
+   <div id="eqSliders" class="eqSliders"></div>
+
+  <audio id="audio" crossorigin="anonymous"></audio>
+  </div>
+</div>
+</div>
+
+<script>
+const audio = document.getElementById("audio");
+const playlist = document.getElementById("playlist");
+const title = document.getElementById("trackTitle");
+const volumeSlider = document.getElementById("volume");
+const eqContainer = document.getElementById("eqSliders");
+
+let trackList = [];
+let currentTrack = 0;
+    let progress = document.getElementById('progress');
+    let timeDisplay = document.getElementById('time-display');
+// === CONTEXTO DE AUDIO ===
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const gainNode = audioCtx.createGain();
+const analyser = audioCtx.createAnalyser();
+const source = audioCtx.createMediaElementSource(audio);
+
+// === BANDA EQ DEFINIDA CON COLOR E ID ===
+const bands = [
+  { freq: 30, id: 'band30', color: '#ddd121' },
+  { freq: 60, id: 'band60', color: '#ddd121' },
+  { freq: 120, id: 'band120', color: '#ddd121' },
+  // { freq: 170, id: 'band170', color: '#ddd121' },
+  { freq: 310, id: 'band310', color: '#ddd121' },
+  { freq: 600, id: 'band600', color: '#ddd121' },
+  { freq: 1000, id: 'band1000', color: '#ddd121' },
+  { freq: 3000, id: 'band3000', color: '#ddd121' },
+  { freq: 6000, id: 'band6000', color: '#ddd121' },
+  // { freq: 8000, id: 'band8000', color: '#ddd121' },
+  // { freq: 10000, id: 'band10000', color: '#ddd121' },
+  { freq: 12000, id: 'band12000', color: '#ddd121' },
+  // { freq: 14000, id: 'band14000', color: '#ddd121' },
+  { freq: 16000, id: 'band16000', color: '#ddd121' }
+];
+
+// === FILTROS Y SLIDERS DINÁMICOS ===
+const filters = bands.map((band, index) => {
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "peaking";
+  filter.frequency.value = band.freq;
+  filter.Q.value = 1;
+  filter.gain.value = 0;
+
+// Crear contenedor del slider + label
+const container = document.createElement("div");
+  container.className = "eq-slider-container";
+
+// =========================================================
+// CONTROL EQ PERSONALIZADO
+// =========================================================
+
+const slider = document.createElement("input");
+
+slider.type = "range";
+slider.min = -12;
+slider.max = 12;
+slider.step = 1;
+slider.value = 0;
+slider.id = band.id;
+
+slider.className = "eq-hidden-input";
+
+
+// Contenedor visual
+const control = document.createElement("div");
+control.className = "eq-control";
+control.setAttribute("role", "slider");
+control.setAttribute("aria-valuemin", "-12");
+control.setAttribute("aria-valuemax", "12");
+control.setAttribute("aria-valuenow", "0");
+control.tabIndex = 0;
+
+
+// Track
+const track = document.createElement("div");
+track.className = "eq-track";
+
+
+// Línea central 0 dB
+const zero = document.createElement("div");
+zero.className = "eq-zero";
+
+
+// Línea activa
+const active = document.createElement("div");
+active.className = "eq-active";
+
+
+// Knob
+const thumb = document.createElement("div");
+thumb.className = "eq-thumb";
+
+
+// Agregar elementos
+control.appendChild(track);
+control.appendChild(zero);
+control.appendChild(active);
+control.appendChild(thumb);
+control.appendChild(slider);
+
+
+// ---------------------------------------------------------
+// Actualizar posición visual
+// ---------------------------------------------------------
+
+function updateEQVisual() {
+
+  const val = parseFloat(slider.value);
+
+  /*
+    -12 = abajo
+      0 = centro
+    +12 = arriba
+  */
+
+  const percentage = (val + 12) / 24;
+
+  const trackHeight = control.clientHeight;
+
+  const thumbHeight = 10;
+
+  const usableHeight = trackHeight - thumbHeight;
+
+  const y = (1 - percentage) * usableHeight;
+
+  thumb.style.top = `${y}px`;
+
+  // Actualizar línea activa
+  if (val >= 0) {
+
+    active.style.bottom = "50%";
+    active.style.height =
+      `${(val / 12) * 50}%`;
+
+  } else {
+
+    active.style.bottom =
+      `${50 + (val / 12) * 50}%`;
+
+    active.style.height =
+      `${Math.abs(val / 12) * 50}%`;
+  }
+
+  control.setAttribute("aria-valuenow", val);
+}
+
+
+// ---------------------------------------------------------
+// Cambiar valor desde coordenada táctil/mouse
+// ---------------------------------------------------------
+
+function setValueFromPointer(clientY) {
+
+  const rect = control.getBoundingClientRect();
+
+  const percentage =
+    1 - ((clientY - rect.top) / rect.height);
+
+  const clamped =
+    Math.max(0, Math.min(1, percentage));
+
+  let value =
+    -12 + clamped * 24;
+
+  value = Math.round(value);
+
+  slider.value = value;
+
+  filter.gain.value = value;
+
+  updateEQVisual();
+}
+
+
+// ---------------------------------------------------------
+// Mouse / Touch / Pointer
+// ---------------------------------------------------------
+
+control.addEventListener("pointerdown", (event) => {
+
+  event.preventDefault();
+
+  control.setPointerCapture(event.pointerId);
+
+  setValueFromPointer(event.clientY);
+});
+
+
+control.addEventListener("pointermove", (event) => {
+
+  if (event.buttons === 0) return;
+
+  event.preventDefault();
+
+  setValueFromPointer(event.clientY);
+});
+
+
+// ---------------------------------------------------------
+// Teclado
+// ---------------------------------------------------------
+
+control.addEventListener("keydown", (event) => {
+
+  let value = parseInt(slider.value);
+
+  if (event.key === "ArrowUp") {
+    value++;
+  }
+
+  else if (event.key === "ArrowDown") {
+    value--;
+  }
+
+  else if (event.key === "PageUp") {
+    value += 3;
+  }
+
+  else if (event.key === "PageDown") {
+    value -= 3;
+  }
+
+  else if (event.key === "Home") {
+    value = 12;
+  }
+
+  else if (event.key === "End") {
+    value = -12;
+  }
+
+  else {
+    return;
+  }
+
+  event.preventDefault();
+
+  value = Math.max(-12, Math.min(12, value));
+
+  slider.value = value;
+  filter.gain.value = value;
+
+  updateEQVisual();
+});
+
+
+// ---------------------------------------------------------
+// Evento input
+// ---------------------------------------------------------
+
+slider.addEventListener("input", () => {
+
+  const val = parseFloat(slider.value);
+
+  filter.gain.value = val;
+
+  updateEQVisual();
+});
+
+  
+
+// Posición inicial
+requestAnimationFrame(updateEQVisual);
+
+// Crear label con "+freq"
+const label = document.createElement("label");
+  label.textContent = band.freq >= 1000 ? (band.freq / 1000) + "k" : band.freq;
+  label.setAttribute("for", band.id);
+  label.className = "eq-label";
+// Agregar slider y label al contenedor
+  container.appendChild(slider);
+  container.appendChild(label);
+// Insertar en el contenedor EQ principal
+  eqContainer.appendChild(container);
+  return filter;
+});
+
+// === CONECTAR FILTROS ===
+  source.connect(filters[0]);
+  for (let i = 0; i < filters.length - 1; i++) {
+    filters[i].connect(filters[i + 1]);
+  }
+  filters[filters.length - 1].connect(gainNode);
+  gainNode.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+// === CONTROL DE VOLUMEN ===
+  volumeSlider.addEventListener("input", () => {
+    gainNode.gain.value = parseFloat(volumeSlider.value);
+  });
+
+// === VISUALIZADOR ===
+const canvas = document.getElementById("visualizer");
+const ctx = canvas.getContext("2d");
+  analyser.fftSize = 256;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+
+function draw() {
+  requestAnimationFrame(draw);
+  analyser.getByteFrequencyData(dataArray);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+const barWidth = (canvas.width / bufferLength) * 1.5;
+let x = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = dataArray[i];
+    ctx.fillStyle = "#0f0";
+    ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+    x += barWidth + 1;
+  }
+}
+draw();
+
+// === PLAYLIST ===
+//fetch('https://raw.githubusercontent.com/RichardBuet/WAP/refs/heads/main/playlist2R.json')
+fetch('https://richardbuet.github.io/WAP/playlist2R.json')
+  .then(res => res.json())
+  .then(data => {
+    trackList = data;
+    playlist.innerHTML = '';
+    data.forEach((track, index) => {
+      const li = document.createElement('li');
+      li.textContent = track.title;
+      li.dataset.index = index;
+      li.addEventListener('click', () => {
+        loadTrack(index);
+        play();
+      });
+      playlist.appendChild(li);
+    });
+    loadTrack(0);
+  });
+
+function loadTrack(index) {
+  currentTrack = index;
+  audio.src = trackList[index].url;
+  title.textContent = trackList[index].title;
+  [...playlist.children].forEach(li => li.classList.remove('active'));
+  playlist.children[index].classList.add('active');
+}
+
+function play() {
+  audioCtx.resume();
+  audio.play();
+}
+function pause() {
+  audio.pause();
+}
+function stop() {
+  audio.pause();
+  audio.currentTime = 0;
+}
+function next() {
+  currentTrack = (currentTrack + 1) % trackList.length;
+  loadTrack(currentTrack);
+  play();
+}
+function prev() {
+  currentTrack = (currentTrack - 1 + trackList.length) % trackList.length;
+  loadTrack(currentTrack);
+  play();
+}
+
+
+//const audio = document.querySelector('audio');
+//const timeDisplay = document.getElementById('time-display');
+
+let cargadoCorrectamente = false;
+let cargaTimeout;
+
+// Mostrar "Cargando..." cuando se empieza a cargar un nuevo audio
+audio.addEventListener('loadstart', () => {
+    cargadoCorrectamente = false;
+    timeDisplay.textContent = "Cargando...";
+
+    // Setear un timeout por si no carga nada
+    clearTimeout(cargaTimeout);
+    cargaTimeout = setTimeout(() => {
+        if (!cargadoCorrectamente) {
+            timeDisplay.textContent = "Error de red o recurso no disponible";
+        }
+    }, 10000); // 10 segundos de espera
+});
+
+// Cuando el audio carga correctamente los metadatos
+audio.addEventListener('loadedmetadata', () => {
+    cargadoCorrectamente = true;
+    clearTimeout(cargaTimeout);
+    updateDisplayTime(0);
+});
+
+// Actualización del tiempo transcurrido
+audio.addEventListener('timeupdate', () => {
+    if (cargadoCorrectamente) {
+        updateDisplayTime(audio.currentTime);
+    }
+});
+
+// Manejo de error explícito (cuando lo lanza)
+audio.addEventListener('error', () => {
+    cargadoCorrectamente = false;
+    clearTimeout(cargaTimeout);
+
+    const code = audio.error?.code;
+    if (code === 4) {
+        timeDisplay.textContent = "No disponible";  
+        //(404 o CORS)
+    } else if (code === 2) {
+        timeDisplay.textContent = "Error de red";
+    } else {
+        timeDisplay.textContent = "Error al cargar";
+    }
+    console.warn("Código de error:", code);
+});
+
+// Mostrar tiempo en formato mm:ss
+function updateDisplayTime(currentTime) {
+    const minutes = Math.floor(currentTime / 60);
+    const seconds = Math.floor(currentTime % 60);
+    const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    timeDisplay.textContent = formattedTime;
+}
+
+</script>
+
+
+</body>
+</html>
