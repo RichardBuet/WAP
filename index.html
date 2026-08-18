@@ -155,6 +155,65 @@
   width: 43px;
 }
 
+#volume {
+  -webkit-appearance: none;
+  appearance: none;
+
+  writing-mode: vertical-lr;
+  direction: rtl;
+
+  width: 22px;
+  height: 100px;
+
+  margin: 2px;
+
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Track del volumen */
+
+#volume::-webkit-slider-runnable-track {
+  width: 6px;
+  height: 100px;
+
+  background: #4a4a4a;
+
+  border: 1px solid #151515;
+  border-radius: 2px;
+}
+
+/* Knob del volumen */
+
+#volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+
+  width: 18px;
+  height: 10px;
+
+  margin-top: -3px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #eeeeee 0%,
+      #c9c9c9 35%,
+      #888888 50%,
+      #c9c9c9 65%,
+      #eeeeee 100%
+    );
+
+  border: 1px solid #303030;
+  border-radius: 2px;
+
+  box-shadow:
+    0 1px 2px #000,
+    inset 0 0 1px #fff;
+}
+
+
+    
 /* ---------------- CONTENEDOR EQ ---------------- */
 
 .eqSliders {
